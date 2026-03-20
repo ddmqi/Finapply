@@ -1393,6 +1393,19 @@ function generateMessage() {
   window._lastPrenom     = prenom;
   window._lastNom        = nom;
   window._lastBanque     = banque;
+  // Pre-build email address now while all data is fresh
+  if (isMail && prenom && nom && banque && typeof ALL_BANKS !== 'undefined') {
+    const _bankNow = window._selectedCompanyBank ||
+      ALL_BANKS.find(b => {
+        const bq = banque.toLowerCase().trim();
+        const bn = b.name.toLowerCase();
+        return bn === bq || bn.includes(bq) || bq.includes(bn) ||
+               bq.split(' ').some(w => w.length > 3 && bn.includes(w));
+      });
+    window._prebuiltEmail = _bankNow ? buildEmail(prenom, nom, _bankNow) : '';
+  } else {
+    window._prebuiltEmail = '';
+  }
 
   setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
 }
@@ -1842,20 +1855,23 @@ function openInMail() {
   if (subjEl && subjEl.style.display !== 'none') {
     subject = subjEl.textContent.replace(/^Objet\s*:\s*/i, '').trim();
   }
-  const prenom = window._lastPrenom || '';
-  const nom    = window._lastNom    || '';
-  const banque = window._lastBanque || '';
-  let to = '';
-  if (prenom && nom && banque && typeof ALL_BANKS !== 'undefined') {
-    const bank = (window._selectedCompanyBank &&
-                  window._selectedCompanyBank.name.toLowerCase() === banque.toLowerCase())
-      ? window._selectedCompanyBank
-      : ALL_BANKS.find(b => {
+  // Use prebuilt email (computed at generate time) — most reliable
+  let to = window._prebuiltEmail || '';
+  // Fallback: try to build at click time if not prebuilt
+  if (!to) {
+    const prenom = window._lastPrenom || '';
+    const nom    = window._lastNom    || '';
+    const banque = window._lastBanque || '';
+    if (prenom && nom && banque && typeof ALL_BANKS !== 'undefined') {
+      const bank = window._selectedCompanyBank ||
+        ALL_BANKS.find(b => {
           const bq = banque.toLowerCase().trim();
           const bn = b.name.toLowerCase();
-          return bn === bq || bn.includes(bq) || bq.includes(bn);
+          return bn === bq || bn.includes(bq) || bq.includes(bn) ||
+                 bq.split(' ').some(w => w.length > 3 && bn.includes(w));
         });
-    if (bank) to = buildEmail(prenom, nom, bank);
+      if (bank) to = buildEmail(prenom, nom, bank);
+    }
   }
   const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
   window.location.href = mailto;
