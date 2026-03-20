@@ -3292,89 +3292,56 @@ function toggleTheme() {
 })();
 
 // ═══════════════════════════════════════════════════════════════
-// SWIPE TO ARCHIVE
+// SWIPE TO ARCHIVE — simplifié
 // ═══════════════════════════════════════════════════════════════
 
-let swipeStartX  = 0;
-let swipeStartY  = 0;
-let swipeStartT  = 0;
-let swipeEl      = null;
-let swipeCard    = null;
-let swipeActive  = false;
-let swipeDecided = false;
+(function() {
+  let startX = 0, startY = 0, card = null, container = null, tracking = false;
 
-document.addEventListener('touchstart', function(e) {
-  // Reset all state on every new touch
-  swipeActive  = false;
-  swipeDecided = false;
-  swipeEl      = null;
-  swipeCard    = null;
+  document.addEventListener('touchstart', function(e) {
+    const c = e.target.closest('.swipe-container');
+    if (!c || e.target.closest('.kanban-card')) {
+      card = null; container = null; tracking = false; return;
+    }
+    container = c;
+    card      = c.querySelector('.swipe-card');
+    startX    = e.touches[0].clientX;
+    startY    = e.touches[0].clientY;
+    tracking  = true;
+    if (card) card.style.transition = 'none';
+  }, { passive: true });
 
-  const container = e.target.closest('.swipe-container');
-  if (!container) return;
-  if (e.target.closest('.kanban-card')) return;
+  document.addEventListener('touchmove', function(e) {
+    if (!tracking || !card) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (Math.abs(dy) > Math.abs(dx) * 2.5) { tracking = false; return; }
+    if (dx > 0) return;
+    e.preventDefault();
+    card.style.transform = `translateX(${dx}px)`;
+    const bg = container.querySelector('.swipe-bg');
+    if (bg) bg.style.opacity = String(Math.min(1, Math.abs(dx) / 40));
+  }, { passive: false });
 
-  swipeEl      = container;
-  swipeCard    = container.querySelector('.swipe-card');
-  swipeStartX  = e.touches[0].clientX;
-  swipeStartY  = e.touches[0].clientY;
-  swipeStartT  = Date.now();
+  document.addEventListener('touchend', function(e) {
+    if (!tracking || !card) { tracking = false; return; }
+    const dx = e.changedTouches[0].clientX - startX;
+    tracking = false;
+    if (dx < -8) {
+      card.style.transition = 'transform 0.2s ease';
+      card.style.transform  = 'translateX(-110%)';
+      const id = container.dataset.id;
+      setTimeout(() => archiveCandById(id), 200);
+    } else {
+      card.style.transition = 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1)';
+      card.style.transform  = 'translateX(0)';
+      const bg = container.querySelector('.swipe-bg');
+      if (bg) bg.style.opacity = '0';
+    }
+    card = null; container = null;
+  }, { passive: true });
+})();
 
-  if (swipeCard) {
-    swipeCard.style.transition = 'none';
-    swipeCard.style.willChange = 'transform';
-  }
-}, { passive: true });
-
-document.addEventListener('touchmove', function(e) {
-  if (!swipeEl || !swipeCard) return;
-  const dx = e.touches[0].clientX - swipeStartX;
-  const dy = e.touches[0].clientY - swipeStartY;
-
-  if (!swipeDecided) {
-    // Activate swipe immediately on any horizontal movement > 2px
-    if (Math.abs(dx) < 2) return;
-    swipeDecided = true;
-    // Only cancel if movement is predominantly vertical (3x more vertical than horizontal)
-    if (Math.abs(dy) > Math.abs(dx) * 3) { swipeEl = null; swipeCard = null; return; }
-    swipeActive = true;
-  }
-  if (!swipeActive) return;
-  e.preventDefault();
-
-  const clampedDx = Math.min(0, dx);
-  swipeCard.style.transform = `translateX(${clampedDx}px)`;
-  const bg = swipeEl.querySelector('.swipe-bg');
-  if (bg) bg.style.opacity = String(Math.min(1, Math.abs(clampedDx) / 20));
-}, { passive: false });
-
-document.addEventListener('touchend', function(e) {
-  if (!swipeEl || !swipeCard) return;
-  const dx       = e.changedTouches[0].clientX - swipeStartX;
-  const dt       = Date.now() - swipeStartT;
-  const velocity = Math.abs(dx) / dt; // px/ms
-
-  // Trigger on any left swipe > 5px
-  const shouldArchive = swipeActive && dx < -2;
-
-  if (shouldArchive) {
-    // Snap to end, then archive
-    swipeCard.style.transition = 'transform 0.2s cubic-bezier(0.25,0.46,0.45,0.94)';
-    swipeCard.style.transform  = 'translateX(-110%)';
-    const id = swipeEl.dataset.id;
-    setTimeout(() => archiveCandById(id), 200);
-  } else {
-    // Snap back with spring feel
-    swipeCard.style.transition = 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)';
-    swipeCard.style.transform  = 'translateX(0)';
-    const bg = swipeEl.querySelector('.swipe-bg');
-    if (bg) { bg.style.transition = 'opacity 0.2s'; bg.style.opacity = '0'; }
-  }
-  swipeEl      = null;
-  swipeCard    = null;
-  swipeActive  = false;
-  swipeDecided = false;
-}, { passive: true });
 
 async function archiveCandById(id) {
   const idx = candidatures.findIndex(x => x.id === id);
