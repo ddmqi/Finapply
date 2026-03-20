@@ -1,0 +1,3037 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FinApply</title>
+<!-- PWA -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FinApply">
+<meta name="theme-color" content="#07080d">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2307080d'/><text y='68' x='50' text-anchor='middle' font-size='55' font-family='sans-serif' fill='%234f8eff'>F</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07080d;
+  --s1: #0f1018;
+  --s2: #171820;
+  --s3: #1e2030;
+  --border: #252636;
+  --border2: #2e3048;
+  --accent: #4f8eff;
+  --accent-dim: rgba(79,142,255,0.12);
+  --green: #2dd4a0;
+  --green-dim: rgba(45,212,160,0.12);
+  --gold: #f0b429;
+  --gold-dim: rgba(240,180,41,0.12);
+  --red: #ff5e7a;
+  --text: #e8eaf6;
+  --sub: #9496b0;
+  --muted: #555770;
+  --r: 14px;
+  --r-sm: 9px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body {
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+/* ─── HEADER ─── */
+header {
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(7,8,13,0.95);
+  backdrop-filter: blur(10px);
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: -0.03em;
+}
+.brand em { color: var(--accent); font-style: normal; }
+.page-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+
+/* ─── MAIN SCROLL ─── */
+main {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px 16px 90px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── BOTTOM NAV ─── */
+.bnav {
+  position: fixed;
+  bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: rgba(11,12,20,0.97);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 6px 4px max(10px, env(safe-area-inset-bottom));
+  z-index: 100;
+}
+.bnav-btn {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: none; border: none;
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 6px 4px;
+  cursor: pointer;
+  transition: color 0.18s;
+  border-radius: var(--r-sm);
+}
+.bnav-btn.active { color: var(--accent); }
+.bnav-btn svg { width: 21px; height: 21px; stroke-width: 1.7; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ─── PAGES ─── */
+.page { display: none; }
+.page.active { display: block; animation: fadeUp .25s ease; }
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ─── TYPOGRAPHY ─── */
+.page-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-bottom: 4px;
+}
+.page-desc { color: var(--sub); font-size: 0.82rem; margin-bottom: 22px; line-height: 1.6; }
+
+/* ─── SECTION LABEL ─── */
+.slabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+  margin-top: 20px;
+}
+.slabel:first-of-type { margin-top: 0; }
+
+/* ─── INPUTS ─── */
+.field-wrap { margin-bottom: 14px; }
+.field-label {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--sub);
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+input[type=text], textarea, select {
+  width: 100%;
+  background: var(--s2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  padding: 11px 13px;
+  outline: none;
+  transition: border-color .18s, background .18s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type=text]:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+  background: var(--s3);
+}
+input[type=text]::placeholder, textarea::placeholder { color: var(--muted); }
+textarea { resize: none; min-height: 70px; }
+select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239496b0' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px; }
+select option { background: #1a1b26; }
+
+/* ─── PILL SELECTOR ─── */
+.pill-group { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+.pill {
+  padding: 7px 14px;
+  border-radius: 30px;
+  border: 1px solid var(--border2);
+  background: var(--s2);
+  color: var(--sub);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.pill:hover { border-color: var(--accent); color: var(--text); }
+.pill.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.pill.green.active { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+.pill.gold.active  { background: var(--gold-dim);  border-color: var(--gold);  color: var(--gold); }
+
+/* ─── TOGGLE ─── */
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--s2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-sm);
+  padding: 11px 14px;
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+.toggle-row .tlabel { font-size: 0.85rem; color: var(--sub); }
+.toggle-row .tlabel strong { color: var(--text); font-weight: 500; }
+.toggle {
+  width: 42px; height: 24px;
+  background: var(--border2);
+  border-radius: 30px;
+  position: relative;
+  transition: background .18s;
+  flex-shrink: 0;
+}
+.toggle::after {
+  content: '';
+  position: absolute;
+  left: 3px; top: 3px;
+  width: 18px; height: 18px;
+  background: var(--sub);
+  border-radius: 50%;
+  transition: transform .18s, background .18s;
+}
+.toggle.on { background: var(--accent-dim); }
+.toggle.on::after { transform: translateX(18px); background: var(--accent); }
+
+/* ─── GENERATE BUTTON ─── */
+.btn-generate {
+  width: 100%;
+  padding: 15px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r);
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: opacity .18s, transform .1s;
+  margin-top: 8px;
+}
+.btn-generate:active { transform: scale(.98); opacity: .9; }
+
+/* ─── OUTPUT CARD ─── */
+.output-card {
+  margin-top: 20px;
+  background: var(--s1);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  overflow: hidden;
+  display: none;
+}
+.output-card.visible { display: block; animation: fadeUp .3s ease; }
+.output-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--s2);
+}
+.output-type {
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.output-type.mail  { color: var(--accent); }
+.output-type.linkedin { color: var(--green); }
+.copy-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: none; border: 1px solid var(--border2);
+  border-radius: 20px; padding: 5px 12px;
+  color: var(--sub); font-size: 0.75rem; font-weight: 500;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+}
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+.copy-btn svg { width: 13px; height: 13px; }
+.copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+.output-subject {
+  padding: 10px 16px 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.output-subject strong { color: var(--sub); }
+
+.output-body {
+  padding: 14px 16px 18px;
+  font-size: 0.87rem;
+  line-height: 1.7;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.output-body .highlight {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-weight: 500;
+}
+
+/* ─── TEMPLATE SELECTOR ─── */
+.template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.tpl-card {
+  background: var(--s2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 12px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.tpl-card:hover { border-color: var(--border2); }
+.tpl-card.active { border-color: var(--accent); background: var(--accent-dim); }
+.tpl-card.active .tpl-name { color: var(--accent); }
+.tpl-name { font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700; margin-bottom: 3px; }
+.tpl-desc { font-size: 0.7rem; color: var(--muted); line-height: 1.4; }
+
+/* ─── DIVIDER ─── */
+hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+/* ─── VALIDATION MSG ─── */
+.vmsg { font-size: 0.76rem; color: var(--red); margin-top: 4px; display: none; }
+.vmsg.show { display: block; }
+
+/* ─── BADGE ─── */
+.badge {
+  display: inline-flex; align-items: center;
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 20px; padding: 3px 9px;
+  border: 1px solid;
+}
+.badge-blue  { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+.badge-green { color: var(--green);  border-color: var(--green);  background: var(--green-dim); }
+.badge-gold  { color: var(--gold);   border-color: var(--gold);   background: var(--gold-dim); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Fin<em>Apply</em></div>
+  <div class="page-label" id="headerLabel">Générateur</div>
+</header>
+
+<main id="mainScroll">
+
+  <!-- ══════════════════════════════════════════
+       PAGE 1 — GÉNÉRATEUR
+  ══════════════════════════════════════════ -->
+  <div class="page active" id="page-gen">
+
+    <div class="page-title">Générateur</div>
+    <p class="page-desc">Remplis les champs — ton message est généré instantanément.</p>
+
+    <!-- TYPE DE CONTRAT -->
+    <div class="slabel">Type de contrat</div>
+    <div class="pill-group" id="contractGroup">
+      <div class="pill active" data-val="Stage">Stage</div>
+      <div class="pill" data-val="VIE">VIE</div>
+      <div class="pill" data-val="CDD">CDD</div>
+      <div class="pill" data-val="CDI">CDI</div>
+    </div>
+
+    <!-- CANAL -->
+    <div class="slabel">Canal de contact</div>
+    <div class="pill-group" id="canalGroup">
+      <div class="pill green active" data-val="LinkedIn">LinkedIn</div>
+      <div class="pill green" data-val="Mail">Mail</div>
+    </div>
+
+    <!-- LANGUE -->
+    <div class="slabel">Langue du message</div>
+    <div class="pill-group" id="langGroup">
+      <div class="pill active" data-val="fr">🇫🇷 Français</div>
+      <div class="pill" data-val="en">🇬🇧 English</div>
+    </div>
+
+    <!-- TYPE DE MESSAGE -->
+    <div class="slabel">Type de message</div>
+    <div class="pill-group" id="msgTypeGroup">
+      <div class="pill active" data-val="candidature" onclick="switchMsgType(this)">Candidature</div>
+      <div class="pill gold" data-val="relance" onclick="switchMsgType(this)">Relance</div>
+      <div class="pill" data-val="remerciement" onclick="switchMsgType(this)">Remerciement</div>
+    </div>
+
+    <!-- APPROCHE (candidature seulement) -->
+    <div id="approcheSection">
+    <div class="slabel">Approche</div>
+    <div class="template-grid" id="templateGrid">
+      <div class="tpl-card active" data-tpl="direct">
+        <div class="tpl-name">Direct</div>
+        <div class="tpl-desc">Va droit au but, accroche sur le profil</div>
+      </div>
+      <div class="tpl-card" data-tpl="networking">
+        <div class="tpl-name">Networking</div>
+        <div class="tpl-desc">Mentionne un contact ou échange préalable</div>
+      </div>
+      <div class="tpl-card" data-tpl="expertise">
+        <div class="tpl-name">Expertise</div>
+        <div class="tpl-desc">Met en avant une compétence clé</div>
+      </div>
+      <div class="tpl-card" data-tpl="accroche">
+        <div class="tpl-name">Accroche Marché</div>
+        <div class="tpl-desc">Référence au contexte marché actuel</div>
+      </div>
+    </div>
+
+    <!-- MÉTIER CIBLÉ -->
+    <div class="slabel" style="margin-top:18px;">Métier ciblé du contact</div>
+    <div class="pill-group" id="metierGroup">
+      <div class="pill active" data-val="Sales">Sales</div>
+      <div class="pill" data-val="Trader">Trader</div>
+      <div class="pill" data-val="Structurer">Structurer</div>
+      <div class="pill" data-val="Quant">Quant</div>
+    </div>
+
+    <!-- CLASSE D'ACTIF -->
+    <div class="field-wrap">
+      <label class="field-label">Classe d'actif (texte libre)</label>
+      <input type="text" id="classeActif" placeholder="ex : Rates, Crédit, Equity Dérivés, Cross Asset…" autocomplete="off">
+    </div>
+    </div>
+
+    <!-- INFOS CONTACT -->
+    <div class="slabel">Infos contact</div>
+
+    <!-- GENRE -->
+    <div class="slabel" style="margin-top:0;margin-bottom:6px;">Genre</div>
+    <div class="pill-group" id="genreGroup" style="margin-bottom:14px;">
+      <div class="pill active" data-val="H">Homme</div>
+      <div class="pill" data-val="F">Femme</div>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <div class="field-wrap" style="flex:1;margin-bottom:0;">
+        <label class="field-label">Prénom</label>
+        <input type="text" id="firstName" placeholder="ex : Sophie" autocomplete="off">
+        <div class="vmsg" id="v-firstName">Requis</div>
+      </div>
+      <div class="field-wrap" style="flex:1;margin-bottom:0;">
+        <label class="field-label">Nom</label>
+        <input type="text" id="lastName" placeholder="ex : Martin" autocomplete="off">
+      </div>
+    </div>
+    <div style="margin-bottom:14px;"></div>
+
+
+
+    <div class="field-wrap">
+      <label class="field-label">Banque / Entreprise</label>
+      <div style="position:relative;">
+        <input type="text" id="company" placeholder="ex : Société Générale, BNP Paribas CIB…" autocomplete="off"
+          oninput="filterCompany()" onfocus="showCompanyDropdown()" onblur="hideCompanyDropdownDelayed()">
+        <div id="company-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--s3);border:1px solid var(--accent);border-radius:var(--r-sm);z-index:200;max-height:220px;overflow-y:auto;margin-top:4px;"></div>
+      </div>
+    </div>
+
+    <!-- VOUVOIEMENT / TUTOIEMENT -->
+    <div id="tutoiementWrap">
+    <div class="toggle-row" id="toggleTutoiement" onclick="toggleTutoiement()">
+      <div class="tlabel"><strong id="tutoLabel">Vouvoiement</strong><br><span style="font-size:0.75rem">Mode de politesse (FR uniquement)</span></div>
+      <div class="toggle" id="tutoToggle"></div>
+    </div>
+    </div>
+
+    <!-- NETWORKING -->
+    <div id="networkingField" style="display:none;">
+      <div class="slabel">Networking</div>
+      <div class="field-wrap">
+        <label class="field-label">Contact commun (prénom ou nom)</label>
+        <input type="text" id="contactCommun" placeholder="ex : Paul Dupont" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- OBJET MAIL (conditionnel) -->
+    <div id="mailSubjectWrap" style="display:none;">
+      <div class="slabel">Compléments mail</div>
+      <div class="field-wrap">
+        <label class="field-label">Intitulé précis du poste (pour l'objet)</label>
+        <input type="text" id="jobRole" placeholder="ex : Stage Trading Dérivés Taux — Paris" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- CHAMPS RELANCE -->
+    <div id="relanceFields" style="display:none;">
+      <div class="slabel">Relance</div>
+      <div class="field-wrap">
+        <label class="field-label">Date du premier mail</label>
+        <input type="text" id="datePremierMail" placeholder="ex : 20/03/2026" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- CHAMPS REMERCIEMENT -->
+    <div id="remerciementFields" style="display:none;">
+      <div class="slabel">Remerciement</div>
+      <div class="field-wrap">
+        <label class="field-label">Sujet / point abordé lors de l'entretien</label>
+        <input type="text" id="sujetEchange" placeholder="ex : les produits autocall, la stratégie Asie…" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- GÉNÉRER -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:0;">
+      <div style="display:flex;gap:8px;">
+        <button class="btn-generate" onclick="generateMessage()" style="flex:1;">Générer le message →</button>
+        <button onclick="clearGenForm()" style="background:var(--s2);border:1px solid var(--border2);border-radius:var(--r);padding:0 16px;color:var(--muted);font-size:0.8rem;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;" title="Vider les champs">✕ Vider</button>
+      </div>
+      <button class="btn-generate" id="mailtoBtn" onclick="openInMail()" style="display:none;background:linear-gradient(135deg,#2dd4a0,#1fa882);">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Générer le Mail
+      </button>
+      <button class="btn-generate" id="addStatsBtn" onclick="addCandidatureFromGenerator()" style="display:none;background:var(--s2);border:1px solid var(--gold);color:var(--gold);">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px;"><path d="M12 5v14M5 12h14"/></svg>
+        Ajouter aux candidatures
+      </button>
+    </div>
+
+    <!-- OUTPUT -->
+    <div class="output-card" id="outputCard">
+      <div class="output-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="output-type" id="outputType">LinkedIn</span>
+          <span class="badge badge-green" id="outputTag">Stage</span>
+        </div>
+        <button class="copy-btn" id="copyBtn" onclick="copyMessage()">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copier
+        </button>
+      </div>
+      <div class="output-subject" id="outputSubject" style="display:none;"></div>
+      <div class="output-body" id="outputBody"></div>
+
+    </div>
+
+  </div><!-- /page-gen -->
+
+  <!-- ══════════════════════════════════════════
+       PAGE 2 — ÉDITEUR DE TEMPLATES
+  ══════════════════════════════════════════ -->
+  <div class="page" id="page-tpl">
+
+    <div class="page-title">Templates</div>
+    <p class="page-desc">Modifie chaque template librement. Les <span style="color:var(--accent)">{{variables}}</span> sont remplacées automatiquement à la génération.</p>
+
+    <!-- Variables cheatsheet -->
+    <div style="background:var(--s2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:20px;">
+      <div style="font-size:0.68rem;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Variables disponibles</div>
+      <div id="varCheatsheet" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+    </div>
+
+    <!-- Sélecteur template -->
+    <div class="slabel">Template à éditer</div>
+    <div class="pill-group" id="editTplGroup"></div>
+
+    <div class="slabel" style="margin-top:14px;">Langue</div>
+    <div class="pill-group" id="editLangGroup">
+      <div class="pill green active" data-lang="fr" onclick="switchEditLang(this)">🇫🇷 Français</div>
+      <div class="pill green" data-lang="en" onclick="switchEditLang(this)">🇬🇧 English</div>
+    </div>
+
+    <!-- Sélecteur canal -->
+    <div class="pill-group" id="editCanalGroup">
+      <div class="pill green active" data-canal="linkedin" onclick="switchEditCanal(this)">🔗 LinkedIn</div>
+      <div class="pill" data-canal="mail" onclick="switchEditCanal(this)">✉ Mail</div>
+    </div>
+    <div id="editCanalNote" style="display:none;background:var(--gold-dim);border:1px solid var(--gold);border-radius:var(--r-sm);padding:10px 13px;font-size:0.78rem;color:var(--gold);margin-bottom:12px;">
+      💡 Les templates <strong>mail</strong> s'adaptent automatiquement au contrat (Stage/VIE vs CDD/CDI) — ils ne sont pas éditables ici pour préserver cette logique.
+    </div>
+
+    <!-- Objet mail -->
+    <div id="mailSubjectEditor" style="display:none;margin-bottom:10px;">
+      <label class="field-label">Objet du mail</label>
+      <input type="text" id="editSubject" placeholder="Objet avec {{variables}}">
+    </div>
+
+    <!-- Corps -->
+    <label class="field-label">Corps du message</label>
+    <textarea id="editBody" style="min-height:240px;font-size:0.83rem;line-height:1.7;" placeholder="Écris ton template avec {{variables}}..."></textarea>
+
+    <!-- Boutons -->
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="btn-generate" style="flex:1;background:var(--s2);color:var(--sub);border:1px solid var(--border2);font-family:'DM Sans',sans-serif;font-weight:500;" onclick="resetTemplate()">↺ Réinitialiser</button>
+      <button class="btn-generate" style="flex:2;" onclick="saveTemplate()">Sauvegarder ✓</button>
+    </div>
+    <div id="saveMsg" style="text-align:center;font-size:0.78rem;color:var(--green);margin-top:8px;height:18px;"></div>
+
+    <!-- Aperçu -->
+    <div style="margin-top:18px;">
+      <div class="slabel" style="margin-top:0;">Aperçu (variables exemples)</div>
+      <div id="previewBox" style="background:var(--s1);border:1px solid var(--border2);border-radius:var(--r-sm);padding:14px;font-size:0.83rem;line-height:1.7;color:var(--sub);white-space:pre-wrap;min-height:60px;word-break:break-word;"></div>
+    </div>
+
+  </div><!-- /page-tpl -->
+
+
+  <!-- ══════════════════════════════════════════
+       PAGE 3 — BANQUES & GÉNÉRATEUR D'EMAIL
+  ══════════════════════════════════════════ -->
+  <div class="page" id="page-banques">
+
+    <div class="page-title">Banques</div>
+    <p class="page-desc">Génère l'adresse email d'un contact et ouvre directement ton client mail avec tout pré-rempli.</p>
+
+    <!-- GÉNÉRATEUR D'EMAIL -->
+    <div style="background:var(--s2);border:1px solid var(--border2);border-radius:var(--r);padding:16px;margin-bottom:20px;">
+      <div class="slabel" style="margin-top:0;">Générer une adresse email</div>
+
+      <div style="display:flex;gap:10px;margin-bottom:12px;">
+        <div style="flex:1;">
+          <label class="field-label">Prénom</label>
+          <input type="text" id="bk-firstName" placeholder="ex : Sophie" autocomplete="off">
+        </div>
+        <div style="flex:1;">
+          <label class="field-label">Nom</label>
+          <input type="text" id="bk-lastName" placeholder="ex : Martin" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="field-wrap">
+        <label class="field-label">Banque</label>
+        <div style="position:relative;">
+          <input type="text" id="bk-bankInput" placeholder="Chercher une banque…" autocomplete="off" oninput="filterBanks()" onfocus="showDropdown()" onblur="hideDropdownDelayed()">
+          <div id="bk-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--s3);border:1px solid var(--accent);border-radius:var(--r-sm);z-index:200;max-height:200px;overflow-y:auto;margin-top:4px;"></div>
+        </div>
+      </div>
+
+      <!-- LinkedIn URL -->
+      <div class="field-wrap">
+        <label class="field-label">URL LinkedIn (profil ou page entreprise)</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="bk-linkedin-url" placeholder="URL profil (/in/…) ou page entreprise (/company/…)" autocomplete="off" style="flex:1;">
+          <button onclick="detectBankFromLinkedIn()" style="background:var(--accent-dim);border:1px solid var(--accent);border-radius:var(--r-sm);padding:10px 13px;color:var(--accent);font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;">Détecter</button>
+        </div>
+        <div id="bk-linkedin-msg" style="font-size:0.73rem;color:var(--muted);margin-top:5px;"></div>
+      </div>
+
+      <!-- Email généré -->
+      <div id="bk-emailResult" style="display:none;margin-bottom:12px;">
+        <label class="field-label">Adresse générée</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div id="bk-emailDisplay" style="flex:1;background:var(--s1);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px 13px;font-size:0.9rem;color:var(--green);font-family:monospace;"></div>
+          <button onclick="copyEmail()" style="background:none;border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px 12px;color:var(--sub);cursor:pointer;white-space:nowrap;font-size:0.78rem;font-family:'DM Sans',sans-serif;" id="copyEmailBtn">Copier</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn-generate" onclick="generateEmail()" style="flex:1;">Générer l'adresse →</button>
+        <button onclick="clearBankForm()" style="background:var(--s2);border:1px solid var(--border2);border-radius:var(--r);padding:0 16px;color:var(--muted);font-size:0.8rem;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;" title="Vider les champs">✕ Vider</button>
+      </div>
+    </div>
+
+    <!-- LISTE DES BANQUES -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div class="slabel" style="margin-top:0;margin-bottom:0;">Annuaire des banques</div>
+      <button onclick="openAddBank()" style="background:var(--accent-dim);border:1px solid var(--accent);border-radius:20px;padding:5px 13px;color:var(--accent);font-size:0.75rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">+ Ajouter</button>
+    </div>
+    <div id="bk-sync-status" style="font-size:0.72rem;color:var(--muted);margin-bottom:10px;">⏳ Connexion Firebase…</div>
+
+    <div style="margin-bottom:12px;">
+      <input type="text" id="bk-search" placeholder="Rechercher une banque…" oninput="renderBankList()" autocomplete="off">
+    </div>
+
+    <div id="bk-list"></div>
+
+    <!-- MODALE AJOUT / ÉDITION -->
+    <div id="bk-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:none;align-items:flex-end;justify-content:center;">
+      <div style="background:var(--s2);border-radius:var(--r) var(--r) 0 0;padding:24px 20px;width:100%;max-width:480px;border-top:1px solid var(--border2);">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:16px;" id="bk-modal-title">Ajouter une banque</div>
+        <div class="field-wrap">
+          <label class="field-label">Nom de la banque</label>
+          <input type="text" id="bk-modal-name" placeholder="ex : Deutsche Bank" autocomplete="off">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Format email (@domain.com)</label>
+          <input type="text" id="bk-modal-domain" placeholder="ex : @db.com" autocomplete="off" oninput="updateFormatPreview()">
+        </div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-bottom:14px;">Format : prénom.nom@domain.com (par défaut) — ou personnalisé ci-dessous</div>
+        <div class="field-wrap">
+          <label class="field-label">Format de l'adresse email</label>
+          <div class="pill-group" id="formatPills" style="flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+            <div class="pill active" data-fmt="prenom.nom" onclick="selectFormat(this)">prenom.nom</div>
+            <div class="pill" data-fmt="p.nom" onclick="selectFormat(this)">p.nom</div>
+            <div class="pill" data-fmt="prenom" onclick="selectFormat(this)">prenom</div>
+            <div class="pill" data-fmt="nom.prenom" onclick="selectFormat(this)">nom.prenom</div>
+            <div class="pill" data-fmt="prenom_nom" onclick="selectFormat(this)">prenom_nom</div>
+            <div class="pill" data-fmt="p_nom" onclick="selectFormat(this)">p_nom</div>
+            <div class="pill" data-fmt="pnom" onclick="selectFormat(this)">pnom</div>
+            <div class="pill" data-fmt="prenomnom" onclick="selectFormat(this)">prenomnom</div>
+          </div>
+          <input type="hidden" id="bk-modal-format" value="prenom.nom">
+          <div style="font-size:0.72rem;color:var(--muted);">
+            Aperçu : <span id="bk-format-preview" style="color:var(--accent);font-family:monospace;"></span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button onclick="closeBankModal()" style="flex:1;padding:13px;background:var(--s3);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--sub);font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;">Annuler</button>
+          <button onclick="saveBankModal()" style="flex:2;padding:13px;background:var(--accent);border:none;border-radius:var(--r-sm);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;cursor:pointer;">Sauvegarder</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-banques -->
+
+
+  <!-- ══════════════════════════════════════════
+       PAGE 4 — SUIVI DES CANDIDATURES
+  ══════════════════════════════════════════ -->
+  <div class="page" id="page-suivi">
+
+    <!-- STATS DASHBOARD -->
+    <div id="suivi-dashboard" style="margin-bottom:20px;">
+
+      <!-- KPI row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div style="background:var(--s2);border:1px solid var(--border2);border-radius:var(--r);padding:14px;text-align:center;">
+          <div id="kpi-total" style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--accent);">0</div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Candidatures</div>
+        </div>
+        <div style="background:var(--s2);border:1px solid var(--border2);border-radius:var(--r);padding:14px;text-align:center;">
+          <div id="kpi-reponse" style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--green);">0%</div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Taux de réponse</div>
+        </div>
+      </div>
+
+      <!-- Statut bars -->
+      <div style="background:var(--s2);border:1px solid var(--border2);border-radius:var(--r);padding:14px;margin-bottom:10px;">
+        <div style="font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Répartition par statut</div>
+        <div id="stat-statuts"></div>
+      </div>
+
+      <!-- Contrat + Canal row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div style="background:var(--s2);border:1px solid var(--border2);border-radius:var(--r);padding:14px;">
+          <div style="font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Contrats</div>
+          <div id="stat-contrats"></div>
+        </div>
+        <div style="background:var(--s2);border:1px solid var(--border2);border-radius:var(--r);padding:14px;">
+          <div style="font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Canaux</div>
+          <div id="stat-canaux"></div>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div style="background:var(--s2);border:1px solid var(--border2);border-radius:var(--r);padding:14px;">
+        <div style="font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Envois par semaine</div>
+        <div id="stat-timeline" style="display:flex;align-items:flex-end;gap:4px;height:50px;"></div>
+      </div>
+    </div>
+
+    <!-- RAPPEL RELANCE -->
+    <div id="rappel-banner" style="display:none;background:rgba(255,94,122,0.1);border:1px solid var(--red);border-radius:var(--r-sm);padding:11px 14px;margin-bottom:12px;">
+      <div style="margin-bottom:6px;">
+        <span style="font-size:0.78rem;font-weight:600;color:var(--red);">⏰ À relancer</span>
+      </div>
+      <div id="rappel-list" style="display:flex;flex-direction:column;gap:5px;"></div>
+    </div>
+
+    <!-- LISTE + AJOUT -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div class="slabel" style="margin-top:0;margin-bottom:0;">Candidatures</div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button onclick="exportCSV()" title="Exporter CSV" style="background:var(--s2);border:1px solid var(--border2);border-radius:20px;padding:5px 11px;color:var(--sub);font-size:0.72rem;cursor:pointer;font-family:'DM Sans',sans-serif;">📥 CSV</button>
+        <button onclick="toggleRappelPicker()" id="rappelPickerBtn" title="Délai de relance par défaut" style="background:var(--s2);border:1px solid var(--border2);border-radius:20px;padding:5px 11px;color:var(--gold);font-size:0.72rem;cursor:pointer;font-family:'DM Sans',sans-serif;">⏰ <span id="rappelPickerLabel">14j</span></button>
+        <button onclick="openCandModal(null)" style="background:var(--accent-dim);border:1px solid var(--accent);border-radius:20px;padding:5px 13px;color:var(--accent);font-size:0.75rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">+ Ajouter</button>
+      </div>
+
+      <!-- Picker délai relance -->
+      <div id="rappelPickerPanel" style="display:none;background:var(--s2);border:1px solid var(--gold);border-radius:var(--r-sm);padding:12px 14px;margin-top:8px;">
+        <div style="font-size:0.75rem;color:var(--sub);margin-bottom:8px;">Délai de relance par défaut (sans date spécifique)</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:0.82rem;color:var(--muted);">Relancer après</span>
+          <input type="number" id="rappel-jours" value="14" min="1" max="90"
+            style="width:52px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:0.9rem;padding:5px 8px;text-align:center;"
+            oninput="onRappelJoursChange()">
+          <span style="font-size:0.82rem;color:var(--muted);">jours</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+          <button onclick="setRappelJours(7)"  style="background:var(--s3);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;color:var(--sub);font-size:0.75rem;cursor:pointer;font-family:'DM Sans',sans-serif;">7j</button>
+          <button onclick="setRappelJours(14)" style="background:var(--s3);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;color:var(--sub);font-size:0.75rem;cursor:pointer;font-family:'DM Sans',sans-serif;">14j</button>
+          <button onclick="setRappelJours(21)" style="background:var(--s3);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;color:var(--sub);font-size:0.75rem;cursor:pointer;font-family:'DM Sans',sans-serif;">21j</button>
+          <button onclick="setRappelJours(30)" style="background:var(--s3);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;color:var(--sub);font-size:0.75rem;cursor:pointer;font-family:'DM Sans',sans-serif;">30j</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECHERCHE -->
+    <div style="position:relative;margin-bottom:8px;">
+      <input type="text" id="suivi-search" placeholder="🔍 Rechercher banque, contact, poste…"
+        oninput="renderSuivi()" autocomplete="off"
+        style="width:100%;padding-left:14px;">
+    </div>
+
+    <!-- TRI -->
+    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+      <span style="font-size:0.7rem;color:var(--muted);white-space:nowrap;">Trier par</span>
+      <select id="suivi-tri" onchange="renderSuivi()" style="flex:1;font-size:0.78rem;padding:5px 8px;">
+        <option value="date-desc">Date ↓</option>
+        <option value="date-asc">Date ↑</option>
+        <option value="statut">Statut</option>
+        <option value="banque">Banque A→Z</option>
+      </select>
+    </div>
+
+    <!-- FILTRES -->
+    <div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;">
+      <button class="pill active" data-filter="tous" onclick="setFilter(this)" style="white-space:nowrap;">Tous</button>
+      <button class="pill" data-filter="a-relancer" onclick="setFilter(this)" style="white-space:nowrap;color:var(--red);border-color:var(--red);">⏰ À relancer</button>
+      <button class="pill" data-filter="Envoyé" onclick="setFilter(this)" style="white-space:nowrap;">Envoyé</button>
+      <button class="pill" data-filter="Relancé" onclick="setFilter(this)" style="white-space:nowrap;">Relancé</button>
+      <button class="pill" data-filter="Entretien" onclick="setFilter(this)" style="white-space:nowrap;">Entretien</button>
+      <button class="pill" data-filter="Refus" onclick="setFilter(this)" style="white-space:nowrap;">Refus</button>
+      <button class="pill" data-filter="Accepté" onclick="setFilter(this)" style="white-space:nowrap;">Accepté</button>
+      <button class="pill" data-filter="archivé" onclick="setFilter(this)" style="white-space:nowrap;color:var(--muted);">📦 Archivés</button>
+    </div>
+
+    <div id="suivi-list"></div>
+
+    <!-- MODALE CANDIDATURE -->
+    <div id="cand-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:400;align-items:flex-end;justify-content:center;">
+      <div style="background:var(--s2);border-radius:var(--r) var(--r) 0 0;padding:22px 18px 32px;width:100%;max-width:480px;border-top:1px solid var(--border2);max-height:90vh;overflow-y:auto;">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:16px;" id="cand-modal-title">Ajouter une candidature</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="field-wrap" style="margin-bottom:0;">
+            <label class="field-label">Banque</label>
+            <input type="text" id="cand-banque" placeholder="ex : Goldman Sachs" autocomplete="off">
+          </div>
+          <div class="field-wrap" style="margin-bottom:0;">
+            <label class="field-label">Contrat</label>
+            <select id="cand-contrat">
+              <option value="Stage">Stage</option>
+              <option value="VIE">VIE</option>
+              <option value="CDD">CDD</option>
+              <option value="CDI">CDI</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-wrap" style="margin-top:10px;">
+          <label class="field-label">Poste / Métier</label>
+          <input type="text" id="cand-poste" placeholder="ex : Trader Rates, Sales Crédit…" autocomplete="off">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="field-wrap" style="margin-bottom:0;">
+            <label class="field-label">Contact</label>
+            <input type="text" id="cand-contact" placeholder="ex : Sophie Martin" autocomplete="off">
+          </div>
+          <div class="field-wrap" style="margin-bottom:0;">
+            <label class="field-label">Date d'envoi</label>
+            <input type="date" id="cand-date" style="color-scheme:dark;">
+          </div>
+          <div class="field-wrap" style="margin-bottom:0;">
+            <label class="field-label">Relance le (optionnel)</label>
+            <input type="date" id="cand-relance" style="color-scheme:dark;">
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+          <div class="field-wrap" style="margin-bottom:0;">
+            <label class="field-label">Canal</label>
+            <select id="cand-canal">
+              <option value="Mail">Mail</option>
+              <option value="LinkedIn">LinkedIn</option>
+            </select>
+          </div>
+          <div class="field-wrap" style="margin-bottom:0;">
+            <label class="field-label">Statut</label>
+            <select id="cand-statut">
+              <option value="Envoyé">Envoyé</option>
+              <option value="Relancé">Relancé</option>
+              <option value="Entretien">Entretien</option>
+              <option value="Refus">Refus</option>
+              <option value="Accepté">Accepté</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-wrap" style="margin-top:10px;">
+          <label class="field-label">Lien de l'offre (optionnel)</label>
+          <input type="url" id="cand-lien" placeholder="https://..." autocomplete="off">
+        </div>
+
+        <div class="field-wrap" style="margin-top:6px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <label class="field-label" style="margin-bottom:0;">Notes</label>
+            <button onclick="startDictation()" id="dictBtn" title="Dicter une note"
+              style="background:none;border:1px solid var(--border2);border-radius:20px;padding:3px 10px;color:var(--sub);font-size:0.72rem;cursor:pointer;font-family:'DM Sans',sans-serif;">
+              🎤 Dicter
+            </button>
+          </div>
+          <textarea id="cand-notes" placeholder="Remarques, suite du process…" style="min-height:60px;"></textarea>
+        </div>
+
+        <!-- Compteur relances -->
+        <div id="cand-relances-info" style="display:none;background:var(--s3);border-radius:var(--r-sm);padding:10px 13px;margin-top:8px;font-size:0.78rem;color:var(--sub);"></div>
+
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+          <button onclick="closeCandModal()" style="flex:1;min-width:80px;padding:13px;background:var(--s3);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--sub);font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;">Annuler</button>
+          <button onclick="dupliquerCandModal()" id="dupBtn" style="display:none;padding:13px 14px;background:var(--s2);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--sub);font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">⧉ Dupliquer</button>
+          <button onclick="genererRelanceFromModal()" id="relanceBtn" style="display:none;padding:13px 14px;background:var(--gold-dim);border:1px solid var(--gold);border-radius:var(--r-sm);color:var(--gold);font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">⏰ Relancer</button>
+          <button onclick="saveCandModal()" style="flex:2;min-width:120px;padding:13px;background:var(--accent);border:none;border-radius:var(--r-sm);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;cursor:pointer;">Sauvegarder</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-suivi -->
+
+
+  <!-- ══════════════════════════════════════════
+       PAGE 5 — KANBAN
+  ══════════════════════════════════════════ -->
+  <div class="page" id="page-kanban">
+
+    <div class="page-title">Kanban</div>
+    <p class="page-desc">Glisse les candidatures d'une colonne à l'autre pour changer le statut.</p>
+
+    <div id="kanban-board" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:16px;-webkit-overflow-scrolling:touch;">
+    </div>
+
+  </div><!-- /page-kanban -->
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="bnav-btn active" onclick="switchPage('gen', this)">
+    <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    Générer
+  </button>
+  <button class="bnav-btn" onclick="switchPage('banques', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+    Banques
+  </button>
+  <button class="bnav-btn" onclick="switchPage('suivi', this)" style="position:relative;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span id="suivi-badge" style="display:none;position:absolute;top:4px;right:8px;background:var(--red);color:#fff;font-size:0.58rem;font-weight:700;border-radius:10px;padding:1px 5px;min-width:14px;text-align:center;"></span>
+    Suivi
+  </button>
+  <button class="bnav-btn" onclick="switchPage('kanban', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
+    Kanban
+  </button>
+  <button class="bnav-btn" onclick="switchPage('tpl', this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+    Éditeur
+  </button>
+</nav>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// TEMPLATES — David Maquoi
+// ─ Tutoiement : NATIF dans chaque template, jamais par remplacement
+// ─ Genre : H/F → accords (e) dans les templates
+// ─ Métier ciblé : Sales / Trader / Structurer / Quant
+// ─ Classe d'actif : texte libre injecté dans {{actif}}
+// ═══════════════════════════════════════════════════════════════
+
+const JUNIOR_CONTRACTS = ['Stage', 'VIE'];
+function isJunior(c) { return JUNIOR_CONTRACTS.includes(c); }
+function isCDI(c)    { return c === 'CDI'; }
+
+// ── ACCROCHE MÉTIER ──────────────────────────────────────────────
+// Retourne un bloc de 1-2 phrases mettant en avant les bonnes compétences
+// selon le métier du contact ET le profil de David
+
+function accrocheProfil(metier, actif, genre, tutoie, lang) {
+  // genre du contact : H ou F (pour accords sur le contact)
+  const ec = genre === 'F' ? 'e' : '';
+  // David est un homme : jamais de (e) sur lui
+
+  if (lang === 'en') {
+    const actifStr = actif ? ` in ${actif}` : '';
+    switch(metier) {
+      case 'Sales':
+        return `My profile combines solid technical expertise in Structured Product Pricing${actifStr} with direct commercial experience, gained during my internship in Cross Asset Structured Products Sales at Société Générale CIB. I also build Pricing Tools used by Sales Teams on a daily basis. I believe this dual perspective — technical and client-facing — is what genuinely sets me apart.`;
+      case 'Trader':
+        return `My day-to-day work at CA-CIB revolves around Pricing${actifStr} derivatives, Monitoring Risk Positions and building Python and VBA automation tools, including pricers I built directly for the Sales Teams. I have a rigorous quantitative approach and a strong understanding of how structuring and trading interact on a Live Book.`;
+      case 'Structurer':
+        return `Structuring${actifStr} products is exactly what I do every day at CA-CIB — Pricing, designing Client Solutions, Interaction with Trading and Middle Office. I have also built a significant part of my own tooling in Python and VBA, including automated pricers for the Sales Teams, which lets me focus on higher-value work.`;
+      case 'Quant':
+        return `My quantitative background — double degree in Quantitative Finance, Python and VBA at an advanced level, stochastic calculus and Monte Carlo methods — combined with daily hands-on experience in Structured Product Pricing${actifStr} and tool development, makes me confident I could contribute meaningfully to your team.`;
+      default:
+        return `My background in derivatives Pricing${actifStr} and structured products, combined with strong Python and VBA skills and experience building Pricing Tools for Sales Teams, makes me genuinely interested in the work your team does.`;
+    }
+  }
+
+  const actifStr = actif ? ` ${actif}` : '';
+  const tv = tutoie;
+
+  switch(metier) {
+    case 'Sales':
+      return `Mon profil combine une solide expertise technique en Pricing de Produits Structurés et une expérience commerciale directe, acquise lors de mon stage en Cross Asset Structured Products Sales chez Société Générale CIB. J'ai également construit des outils de Pricing utilisés quotidiennement par les Équipes de Sales. Je pense que cette double dimension, technique et commerciale, est ce qui me différencie réellement.`;
+    case 'Trader':
+      return `Mon quotidien chez CA-CIB est centré sur le Pricing de Produits Structurés, la construction d'outils d'automatisation en Python et VBA, et la création de pricers pour les Équipes de Sales. Cette double compétence en Pricing et Automatisation, me permet d'être rapidement opérationnel et de contribuer concrètement à l'activité de l'équipe.`;
+    case 'Structurer':
+      return `La structuration de produits${actifStr} est précisément ce que je fais au quotidien chez CA-CIB — Pricing, Solutions Clients, Interaction avec le Trading et le Middle Office. J'ai également construit une grande partie de mes outils en Python et VBA, dont des pricers automatisés pour les Équipes de Sales, ce qui me permet de me concentrer sur les tâches à plus forte valeur ajoutée.`;
+    case 'Quant':
+      return `Mon bagage quantitatif — double diplôme en Finance Quantitative, Python et VBA niveau avancé, calcul stochastique et simulations Monte Carlo — combiné à une expérience terrain quotidienne en Pricing de Produits Structurés et en développement d'outils, me convainc que je pourrais apporter une contribution réelle à ${tv ? 'ton' : 'votre'} équipe.`;
+    default:
+      return `Mon expérience en Pricing de Produits Structurés et la construction d'outils d'automatisation en Python et VBA, dont des pricers pour les Équipes de Sales, me donnent envie de contribuer au travail de ${tv ? 'ton' : 'votre'} équipe.`;
+  }
+}
+
+// ── BLOCS DE BASE ────────────────────────────────────────────────
+// Tout est écrit deux fois : vouvoiement (V) et tutoiement (T)
+
+function introJunior(tv, lang) {
+  if (lang === 'en') return "I am currently on an apprenticeship as Non Linear Rates, Credit & Hybrid Structurer at CA-CIB and also pursuing a double degree in Quantitative Finance at Paris II Assas";
+  return tv
+    ? "Actuellement en alternance en tant que Non Linear Rates, Credit & Hybrid Structuring chez CA-CIB et en double diplôme en Finance Quantitative à Paris II Assas"
+    : "Actuellement en alternance en tant que Non Linear Rates, Credit & Hybrid Structuring chez CA-CIB et en double diplôme en Finance Quantitative à Paris II Assas";
+  // même phrase — mais les constructions AUTOUR changeront (tu/vous)
+}
+
+function introSenior(tv, lang) {
+  if (lang === 'en') return "Following two internships in capital markets, including one as Non Linear Rates, Credit & Hybrid Structurer at CA-CIB and one in Cross Asset Structured Products Sales at Société Générale CIB, both completed as part of my double degree in Quantitative Finance at Paris II Assas";
+  return "Après deux stages en finance de marché, dont un en Non Linear Rates, Credit & Hybrid Structuring chez CA-CIB et un en Cross Asset Structured Products Sales chez Société Générale CIB, réalisés dans le cadre de mon double diplôme en Finance Quantitative à Paris II Assas";
+}
+
+function introCDI(tv, lang) {
+  if (lang === 'en') return "I am currently on an apprenticeship as Non Linear Rates, Credit & Hybrid Structurer at CA-CIB and also pursuing a double degree in Quantitative Finance at Paris II Assas";
+  return "Actuellement en alternance en tant que Non Linear Rates, Credit & Hybrid Structuring chez CA-CIB et en double diplôme en Finance Quantitative à Paris II Assas";
+}
+
+function salut(tv, lang) {
+  if (lang === 'en') return "I hope you are doing well.";
+  return tv ? "J'espère que tu vas bien." : "J'espère que vous allez bien.";
+}
+
+function ouvert(genre) {
+  return genre === 'F' ? 'ouverte' : 'ouvert';
+}
+
+function sig(lang) {
+  return lang === 'en' ? "Best regards,\nDavid Maquoi" : "Bien à vous,\nDavid Maquoi";
+}
+
+function sigT(lang) {
+  return lang === 'en' ? "Best regards,\nDavid Maquoi" : "Bien à toi,\nDavid Maquoi";
+}
+
+function bonjour(tv, prenom, nom, genre, lang) {
+  if (lang === 'en') {
+    return tv ? `Hello ${prenom},` : `Dear ${genre === 'F' ? 'Ms.' : 'Mr.'} ${nom || prenom},`;
+  }
+  if (tv) return `Hello ${prenom},`;
+  const civ = genre === 'F' ? 'Madame' : 'Monsieur';
+  return `Bonjour ${civ} ${nom || prenom},`;
+}
+
+function pj(lang) {
+  return lang === 'en' ? "Please find my CV attached." : "Vous trouverez mon CV en pièce jointe.";
+}
+function pjT(lang) {
+  return lang === 'en' ? "Please find my CV attached." : "Tu trouveras mon CV en pièce jointe.";
+}
+
+function dispoFin(tv, lang, genre) {
+  if (lang === 'en') return "Would you be available for a brief call?";
+  return tv ? "Serais-tu disponible pour un bref échange ?" : "Seriez-vous disponible pour un bref échange ?";
+}
+
+function dispoConv(tv, lang) {
+  if (lang === 'en') return "I remain available at your convenience.";
+  return tv ? "Je reste disponible pour un échange à ta convenance." : "Je reste disponible pour un échange à votre convenance.";
+}
+
+function ton(tv) { return tv ? 'ton' : 'votre'; }
+function tonC(tv) { return tv ? 'Ton' : 'Votre'; }
+function te(tv) { return tv ? 'te' : 'vous'; }
+
+// ═══════════════════════════════════════════════════════════════
+// MAIL CANDIDATURE — construit dynamiquement
+// ═══════════════════════════════════════════════════════════════
+
+function buildMailCandidature(lang, contract, approach, tv, genre, metier, actif, vars) {
+  const junior = isJunior(contract);
+  const cdi    = isCDI(contract);
+  const v      = vars;
+  const bj     = bonjour(tv, v.prenom, v.nom, v.genre, lang);
+  const sl     = salut(tv, lang);
+  const ap     = accrocheProfil(metier, actif, genre, tv, lang);
+  const s      = tv ? sigT(lang) : sig(lang);
+  const enLang = lang === 'en';
+
+  // ── CDI ──────────────────────────────────────────────────────
+  if (cdi) {
+    const intro = introCDI(tv, lang);
+    const ouv   = ouvert(genre);
+    const subjectMap = {
+      direct:    enLang ? `Spontaneous application CDI — ${v.titre} — David Maquoi` : `Candidature spontanée CDI — ${v.titre} — David Maquoi`,
+      networking:enLang ? `Spontaneous application CDI — ${v.titre} — David Maquoi — ref. ${v.contact}` : `Candidature spontanée CDI — ${v.titre} — David Maquoi — ref. ${v.contact}`,
+      expertise: enLang ? `Spontaneous application CDI — ${v.titre} — David Maquoi` : `Candidature spontanée CDI — ${v.titre} — David Maquoi`,
+      accroche:  enLang ? `Spontaneous application CDI — ${v.titre} — David Maquoi` : `Candidature spontanée CDI — ${v.titre} — David Maquoi`,
+    };
+    const textMap = {
+      direct: enLang
+        ? `${bj}\n\n${sl}\n\n${intro}. I am reaching out to enquire about a potential opportunity within your team at ${v.banque}.\n\n${ap}\n\nI am well aware that opportunities do not always arise at the right time, but I believe a 20-minute conversation would be enough to show you whether my profile could be relevant for your team.\n\nWould you be ${ouv} to a brief call at your convenience?\n\n${enLang ? pj(lang) : pj(lang)}\n\n${s}`
+        : `${bj}\n\n${sl}\n\n${intro}, je me permets de ${te(tv)} contacter au sujet d'une éventuelle opportunité au sein de ${ton(tv)} équipe chez ${v.banque}.\n\n${ap}\n\nJe suis bien conscient que les opportunités ne se présentent pas toujours au bon moment, mais je pense qu'un échange de 20 minutes suffirait à ${te(tv)} montrer si mon profil pourrait être pertinent pour ${ton(tv)} équipe.\n\nSerais-${tv ? 'tu' : 'vous'} ${ouv} à un appel ou un café à ${ton(tv)} convenance ?\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
+      networking: enLang
+        ? `${bj}\n\n${sl}\n\n${v.contact} encouraged me to reach out directly, and having followed your career at ${v.banque}, I understand why.\n\n${intro}. I am writing because I would genuinely like to join a team like yours, and ${v.contact} thought our profiles could be a good match.\n\n${ap}\n\nWould you be ${ouv} to a 20-minute call?\n\n${pj(lang)}\n\n${s}`
+        : `${bj}\n\n${sl}\n\n${v.contact} m'a encouragé à ${te(tv)} contacter directement, et après avoir suivi ${ton(tv)} parcours chez ${v.banque}, je comprends pourquoi.\n\n${intro}. Je ${te(tv)} contacte avec la sincère envie de rejoindre une équipe comme la ${tv ? 'tienne' : 'vôtre'}, et ${v.contact} pense que nos profils pourraient bien se compléter.\n\n${ap}\n\nSerais-${tv ? 'tu' : 'vous'} ${ouv} à un appel ou un café ?\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
+      expertise: enLang
+        ? `${bj}\n\n${sl}\n\n${intro}. Your role as ${v.titre} at ${v.banque} is exactly the type of position I am working towards, and I wanted to reach out directly rather than apply through the standard channels.\n\n${ap}\n\nI would genuinely value a conversation with you — even a short one.\n\nWould you be open to a call or a coffee at your convenience?\n\n${pj(lang)}\n\n${s}`
+        : `${bj}\n\n${sl}\n\n${intro}. ${tonC(tv)} poste de ${v.titre} chez ${v.banque} correspond exactement au type de rôle vers lequel je souhaite m'orienter, et j'ai préféré ${te(tv)} contacter directement plutôt que de passer par les voies classiques.\n\n${ap}\n\nUn échange avec ${tv ? 'toi' : 'vous'}, même court, aurait beaucoup de valeur pour moi.\n\nSerais-${tv ? 'tu' : 'vous'} ${ouv} à un appel ou un café ?\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
+      accroche: enLang
+        ? `${bj}\n\n${sl}\n\nThe current market environment — active rates, credit repricing, growing structured product flows — made me think carefully about which teams I would most like to join. That reflection led me to your profile at ${v.banque}.\n\n${intro}. ${ap}\n\nI am not looking to be pushy, but I do think a 20-minute conversation could be genuinely interesting for both of us.\n\nWould you be ${ouv} to a brief call?\n\n${pj(lang)}\n\n${s}`
+        : `${bj}\n\n${sl}\n\nLe contexte de marché actuel — Volatilité des Taux, repricing du Risque Crédit, flux croissants sur les Produits Structurés — m'a amené à réfléchir sérieusement aux équipes que je voudrais rejoindre. Cette réflexion m'a conduit à ${ton(tv)} profil chez ${v.banque}.\n\n${intro}. ${ap}\n\nJe ne cherche pas à être insistant${v.genre==='F'?'e':''}, mais je pense sincèrement qu'un échange de 20 minutes pourrait être intéressant pour nous deux.\n\nSerais-${tv ? 'tu' : 'vous'} ${ouv} à un appel ou un café ?\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
+    };
+    return { subject: subjectMap[approach] || subjectMap.direct, text: textMap[approach] || textMap.direct };
+  }
+
+  // ── STAGE / VIE / CDD ─────────────────────────────────────────
+  const intro = junior ? introJunior(tv, lang) : introSenior(tv, lang);
+  const subjectMap = {
+    direct:    enLang ? `Application ${v.contrat} — ${v.titre} — David Maquoi` : `Candidature ${v.contrat} — ${v.titre} — David Maquoi`,
+    networking:enLang ? `Application ${v.contrat} — ${v.titre} — David Maquoi — ref. ${v.contact}` : `Candidature ${v.contrat} — ${v.titre} — David Maquoi — ref. ${v.contact}`,
+    expertise: enLang ? `Application ${v.contrat} — ${v.titre} — David Maquoi` : `Candidature ${v.contrat} — ${v.titre} — David Maquoi`,
+    accroche:  enLang ? `Application ${v.contrat} — ${v.titre} — David Maquoi` : `Candidature ${v.contrat} — ${v.titre} — David Maquoi`,
+  };
+  const textMap = {
+    direct: enLang
+      ? `${bj}\n\n${sl}\n\n${intro}. I am reaching out because your role as ${v.titre} at ${v.banque} is exactly the kind of environment I want to develop in.\n\n${ap}\n\nI am seeking a ${v.contrat} and would love to connect about opportunities within your team.\n\n${pj(lang)}\n\n${s}`
+      : `${bj}\n\n${sl}\n\n${intro}, je me permets de ${te(tv)} contacter car ${ton(tv)} poste de ${v.titre} chez ${v.banque} correspond exactement à l'environnement dans lequel je souhaite évoluer.\n\n${ap}\n\nJe suis à la recherche d'un ${v.contrat} et serais ravi de pouvoir échanger avec ${tv ? 'toi' : 'vous'} sur les opportunités au sein de ${ton(tv)} équipe.\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
+    networking: enLang
+      ? `${bj}\n\n${sl}\n\nFollowing a conversation with ${v.contact}, who described your desk and encouraged me to reach out directly, I wanted to introduce myself.\n\n${intro}. ${ap}\n\nI am looking for a ${v.contrat} and your team at ${v.banque} stands out as an ideal opportunity.\n\n${pj(lang)}\n\n${dispoConv(tv, lang)}\n\n${s}`
+      : `${bj}\n\n${sl}\n\nSuite à un échange avec ${v.contact}, qui m'a décrit les missions de ${ton(tv)} desk et m'a encouragé à ${te(tv)} contacter directement, je me permets de ${te(tv)} écrire.\n\n${intro}. ${ap}\n\nJe suis à la recherche d'un ${v.contrat} et ${ton(tv)} équipe chez ${v.banque} représente pour moi une opportunité idéale.\n\n${tv ? pjT(lang) : pj(lang)}\n\n${dispoConv(tv, lang)}\n\n${s}`,
+    expertise: enLang
+      ? `${bj}\n\n${sl}\n\n${intro}. As ${v.titre} at ${v.banque}, you work at the core of what I do every day.\n\n${ap}\n\nI am looking for a ${v.contrat} and would be happy to connect at your convenience.\n\n${pj(lang)}\n\n${s}`
+      : `${bj}\n\n${sl}\n\n${intro}. En tant que ${v.titre} chez ${v.banque}, ${tv ? 'tu es' : 'vous êtes'} au cœur du domaine sur lequel je travaille au quotidien.\n\n${ap}\n\nJe suis à la recherche d'un ${v.contrat} et serais heureux d'échanger avec ${tv ? 'toi' : 'vous'} à ${ton(tv)} convenance.\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
+    accroche: enLang
+      ? `${bj}\n\n${sl}\n\nThe current market environment, particularly active on rates and volatility, makes the role of ${v.titre} at ${v.banque} more strategic than ever. That is what motivated me to reach out.\n\n${intro}. ${ap}\n\nI am looking for a ${v.contrat}.\n\n${pj(lang)}\n\n${dispoConv(tv, lang)}\n\n${s}`
+      : `${bj}\n\n${sl}\n\nLe contexte de marché actuel, particulièrement actif sur les Taux et la Volatilité, rend le rôle de ${v.titre} chez ${v.banque} plus stratégique que jamais. C'est ce qui m'a motivé à ${te(tv)} contacter.\n\n${intro}. ${ap}\n\nJe suis à la recherche d'un ${v.contrat}.\n\n${tv ? pjT(lang) : pj(lang)}\n\n${dispoConv(tv, lang)}\n\n${s}`,
+  };
+  return { subject: subjectMap[approach] || subjectMap.direct, text: textMap[approach] || textMap.direct };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAIL RELANCE
+// ═══════════════════════════════════════════════════════════════
+
+function buildMailRelance(lang, contract, tv, vars) {
+  const v = vars;
+  const bj = bonjour(tv, v.prenom, v.nom, v.genre, lang);
+  const sl = salut(tv, lang);
+  const s  = tv ? sigT(lang) : sig(lang);
+  const enLang = lang === 'en';
+  const junior = isJunior(contract);
+  const cdi    = isCDI(contract);
+
+  const subject = enLang
+    ? `Follow-up — ${cdi ? 'Prise de contact' : 'Application ' + v.contrat} — David Maquoi`
+    : `Relance — ${cdi ? 'Candidature spontanée' : 'Candidature ' + v.contrat} — David Maquoi`;
+
+  let text;
+  if (enLang) {
+    text = cdi
+      ? `${bj}\n\nI hope you are doing well.\n\nI am following up on my message from ${v.datePremierMail}. I understand you are very busy and I do not want to be a bother. I genuinely believe my profile could be of interest to your team at ${v.banque}, whether now or further down the line.\n\nI remain available at your convenience.\n\n${s}`
+      : `${bj}\n\nI hope you are doing well.\n\nI am following up on my email from ${v.datePremierMail} regarding a ${v.contrat} opportunity ${junior ? 'within your team ' : ''}at ${v.banque}. I understand you are very busy and would not want my message to have been missed.\n\nI remain available at your convenience.\n\n${s}`;
+  } else if (tv) {
+    text = cdi
+      ? `${bj}\n\n${sl}\n\nJe me permets de te relancer suite à mon message du ${v.datePremierMail}. Je sais que ton agenda est chargé et je ne voudrais surtout pas être lourd${v.genre==='F'?'e':''}. Je reste sincèrement convaincu que mon profil pourrait intéresser ton équipe chez ${v.banque}, que ce soit maintenant ou plus tard.\n\nJe reste disponible à ta convenance.\n\n${s}`
+      : `${bj}\n\n${sl}\n\nJe me permets de te relancer suite à mon mail du ${v.datePremierMail} concernant ma candidature à un ${v.contrat} chez ${v.banque}. Je sais que tu es très sollicité${v.genre==='F'?'e':''} et je ne voudrais pas que mon message soit passé inaperçu.\n\nJe reste disponible à ta convenance.\n\n${s}`;
+  } else {
+    text = cdi
+      ? `${bj}\n\n${sl}\n\nJe me permets de vous relancer suite à mon message du ${v.datePremierMail}. Je sais que votre agenda est chargé et ne voudrais surtout pas être insistant${v.genre==='F'?'e':''}. Je reste sincèrement convaincu que mon profil pourrait intéresser votre équipe chez ${v.banque}, que ce soit maintenant ou plus tard.\n\nJe reste disponible à votre convenance.\n\n${s}`
+      : `${bj}\n\n${sl}\n\nJe me permets de vous relancer suite à mon mail du ${v.datePremierMail} concernant ma candidature à un ${v.contrat} chez ${v.banque}. Je sais que vous êtes très sollicité${v.genre==='F'?'e':''} et ne voudrais pas que mon message soit passé inaperçu.\n\nJe reste disponible à votre convenance.\n\n${s}`;
+  }
+  return { subject, text };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAIL REMERCIEMENT
+// ═══════════════════════════════════════════════════════════════
+
+function buildMailRemerciement(lang, contract, tv, genre, vars) {
+  const v = vars;
+  const bj = bonjour(tv, v.prenom, v.nom, v.genre, lang);
+  const s  = tv ? sigT(lang) : sig(lang);
+  const enLang = lang === 'en';
+  const junior = isJunior(contract);
+  const e  = genre === 'F' ? 'e' : '';
+
+  const subject = enLang
+    ? `Thank you for our discussion — ${v.prenom} — David Maquoi`
+    : `Merci pour notre échange — ${v.prenom} — David Maquoi`;
+
+  let text;
+  if (enLang) {
+    text = `${bj}\n\nThank you for taking the time to speak with me${junior ? ' today' : ''}. Our conversation was genuinely insightful and I particularly appreciated your advice on ${v.sujetEchange}.\n\n${junior ? 'This has only strengthened my motivation to join your team at ' + v.banque + '.' : 'It confirmed my strong interest in ' + v.banque + ' and the ' + v.role + ' position.'}\n\nPlease do not hesitate to reach out if you need anything further.\n\n${s}`;
+  } else if (tv) {
+    text = junior
+      ? `${bj}\n\nJe tenais à te remercier pour le temps que tu m'as accordé. Notre échange a été très instructif et j'ai particulièrement apprécié tes conseils sur ${v.sujetEchange}.\n\nCela a encore renforcé ma motivation à rejoindre ton équipe chez ${v.banque}. N'hésite pas à me solliciter pour tout complément d'information.\n\n${s}`
+      : `${bj}\n\nMerci pour la qualité de notre échange. Il a confirmé l'intérêt que je porte à ${v.banque} et au poste de ${v.role}.\n\nJ'ai bien noté ton retour sur ${v.sujetEchange} et reste convaincu que mon profil correspond aux attentes de ton équipe. Je reste disponible pour la suite du process.\n\n${s}`;
+  } else {
+    text = junior
+      ? `${bj}\n\nJe tenais à vous remercier pour le temps que vous m'avez accordé. Notre échange a été très instructif et j'ai particulièrement apprécié vos conseils sur ${v.sujetEchange}.\n\nCela a encore renforcé ma motivation à rejoindre votre équipe chez ${v.banque}. N'hésitez pas à me solliciter pour tout complément d'information.\n\n${s}`
+      : `${bj}\n\nMerci pour la qualité de notre échange. Il a confirmé l'intérêt que je porte à ${v.banque} et au poste de ${v.role}.\n\nJ'ai bien noté votre retour sur ${v.sujetEchange} et reste convaincu que mon profil correspond aux attentes de votre équipe. Je reste disponible pour la suite du process.\n\n${s}`;
+  }
+  return { subject, text };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LINKEDIN TEMPLATES — statiques, pas de tutoiement dynamique
+// (LinkedIn = toujours vouvoiement de base, tutoiement si toggle)
+// ═══════════════════════════════════════════════════════════════
+
+function buildLinkedin(tpl, tv, lang, metier, actif, vars) {
+  const v   = vars;
+  const bj  = bonjour(tv, v.prenom, v.nom, v.genre, lang);
+  const sl  = salut(tv, lang);
+  const ap  = accrocheProfil(metier, actif, v.genre || 'H', tv, lang);
+  const s   = tv ? sigT(lang) : sig(lang);
+  const enLang = lang === 'en';
+  const actifStr = actif ? (enLang ? ` in ${actif}` : ` ${actif}`) : '';
+
+  const introLI = enLang
+    ? `I am currently on an apprenticeship as Non Linear Rates, Credit & Hybrid Structurer at CA-CIB and also pursuing a double degree in Quantitative Finance at Paris II Assas`
+    : `Actuellement en alternance en tant que Non Linear Rates, Credit & Hybrid Structuring chez CA-CIB et en double diplôme en Finance Quantitative à Paris II Assas`;
+
+  switch(tpl) {
+    case 'networking':
+      return enLang
+        ? `${bj}\n\n${sl}\n\n${v.contact} suggested I reach out after our conversation about your desk at ${v.banque}.\n\n${introLI}. I am looking for a ${v.contrat} and your team genuinely stands out to me. Would you be available for a brief call?\n\n${s}`
+        : tv
+          ? `${bj}\n\n${sl}\n\n${v.contact} m'a encouragé à te contacter après notre échange sur ton desk chez ${v.banque}.\n\n${introLI}. Je suis à la recherche d'un ${v.contrat} et ton équipe m'intéresse particulièrement. Serais-tu disponible pour un bref call ?\n\n${s}`
+          : `${bj}\n\n${sl}\n\n${v.contact} m'a encouragé à vous contacter après notre échange sur votre desk chez ${v.banque}.\n\n${introLI}. Je suis à la recherche d'un ${v.contrat} et votre équipe m'intéresse particulièrement. Seriez-vous disponible pour un bref call ?\n\n${s}`;
+    case 'expertise':
+      return enLang
+        ? `${bj}\n\n${sl}\n\nYour role as ${v.titre} at ${v.banque} is exactly what prompted me to reach out.\n\n${introLI}. ${ap}\n\nI am looking for a ${v.contrat} and your team genuinely stands out to me. Would you have 15 minutes to discuss?\n\n${s}`
+        : tv
+          ? `${bj}\n\n${sl}\n\nTon rôle de ${v.titre} chez ${v.banque} est exactement ce qui m'a amené à te solliciter.\n\n${introLI}. ${ap}\n\nJe suis à la recherche d'un ${v.contrat} et ton équipe m'intéresse particulièrement. Aurais-tu 15 minutes pour en parler ?\n\n${s}`
+          : `${bj}\n\n${sl}\n\nVotre rôle de ${v.titre} chez ${v.banque} est exactement ce qui m'a amené à vous solliciter.\n\n${introLI}. ${ap}\n\nJe suis à la recherche d'un ${v.contrat} et votre équipe m'intéresse particulièrement. Auriez-vous 15 minutes pour en parler ?\n\n${s}`;
+    case 'accroche':
+      return enLang
+        ? `${bj}\n\n${sl}\n\nIn the current rates and vol environment, the role of ${v.titre} at ${v.banque} feels particularly strategic.\n\n${introLI}. I am looking for a ${v.contrat} and your team genuinely stands out to me. Your take on current markets${actifStr} would be very interesting to hear.\n\n${s}`
+        : tv
+          ? `${bj}\n\n${sl}\n\nDans le contexte actuel sur les Taux et la Volatilité, le rôle de ${v.titre} chez ${v.banque} me semble particulièrement stratégique.\n\n${introLI}. Je suis à la recherche d'un ${v.contrat} et ton équipe m'intéresse particulièrement. Ton regard sur le contexte actuel${actifStr ? ' en ' + actif : ''} m'intéresserait beaucoup.\n\n${s}`
+          : `${bj}\n\n${sl}\n\nDans le contexte actuel sur les Taux et la Volatilité, le rôle de ${v.titre} chez ${v.banque} me semble particulièrement stratégique.\n\n${introLI}. Je suis à la recherche d'un ${v.contrat} et votre équipe m'intéresse particulièrement. Votre regard sur le contexte actuel${actifStr ? ' en ' + actif : ''} m'intéresserait beaucoup.\n\n${s}`;
+    default: // direct
+      return enLang
+        ? `${bj}\n\n${sl}\n\n${introLI}. Your profile as ${v.titre} at ${v.banque} really caught my attention.\n\nI am looking for a ${v.contrat} and your team genuinely stands out to me. Would you have a few minutes to connect?\n\n${s}`
+        : tv
+          ? `${bj}\n\n${sl}\n\n${introLI}, je me permets de te contacter car ton profil de ${v.titre} chez ${v.banque} m'a interpellé.\n\nJe suis à la recherche d'un ${v.contrat} et ton équipe m'intéresse particulièrement. Aurais-tu quelques minutes pour échanger ?\n\n${s}`
+          : `${bj}\n\n${sl}\n\n${introLI}, je me permets de vous contacter car votre profil de ${v.titre} chez ${v.banque} m'a interpellé.\n\nJe suis à la recherche d'un ${v.contrat} et votre équipe m'intéresse particulièrement. Auriez-vous quelques minutes pour échanger ?\n\n${s}`;
+  }
+}
+
+// ── STATE ─────────────────────────────────────────────────────────
+let state = {
+  contract: 'Stage', canal: 'LinkedIn', lang: 'fr',
+  msgType: 'candidature', tpl: 'direct',
+  tutoie: false, genre: 'H', metier: 'Sales',
+};
+
+// ── PILL SELECTORS ────────────────────────────────────────────────
+function bindPills(groupId, key) {
+  document.querySelectorAll(`#${groupId} .pill`).forEach(p => {
+    p.onclick = () => {
+      document.querySelectorAll(`#${groupId} .pill`).forEach(x => x.classList.remove('active'));
+      p.classList.add('active');
+      state[key] = p.dataset.val;
+      if (key === 'lang') {
+        document.getElementById('tutoiementWrap').style.display = state.lang === 'fr' ? 'block' : 'none';
+        if (state.lang === 'en') { state.tutoie = false; document.getElementById('tutoToggle').classList.remove('on'); document.getElementById('tutoLabel').textContent = 'Vouvoiement'; }
+      }
+    };
+  });
+}
+bindPills('contractGroup', 'contract');
+bindPills('canalGroup', 'canal');
+bindPills('langGroup', 'lang');
+bindPills('genreGroup', 'genre');
+bindPills('metierGroup', 'metier');
+
+document.querySelectorAll('#templateGrid .tpl-card').forEach(p => {
+  p.onclick = () => {
+    document.querySelectorAll('#templateGrid .tpl-card').forEach(x => x.classList.remove('active'));
+    p.classList.add('active'); state.tpl = p.dataset.tpl;
+    document.getElementById('networkingField').style.display = p.dataset.tpl === 'networking' ? 'block' : 'none';
+  };
+});
+
+function switchMsgType(el) {
+  document.querySelectorAll('#msgTypeGroup .pill').forEach(x => x.classList.remove('active'));
+  el.classList.add('active'); state.msgType = el.dataset.val;
+  document.getElementById('approcheSection').style.display = state.msgType === 'candidature' ? 'block' : 'none';
+  updateMailExtras();
+}
+function updateMailExtras() {
+  const isMail = state.canal === 'Mail';
+  document.getElementById('mailSubjectWrap').style.display    = isMail ? 'block' : 'none';
+  document.getElementById('relanceFields').style.display      = (isMail && state.msgType === 'relance')      ? 'block' : 'none';
+  document.getElementById('remerciementFields').style.display = (isMail && state.msgType === 'remerciement') ? 'block' : 'none';
+}
+function toggleTutoiement() {
+  if (state.lang === 'en') return;
+  state.tutoie = !state.tutoie;
+  document.getElementById('tutoToggle').classList.toggle('on', state.tutoie);
+  document.getElementById('tutoLabel').textContent = state.tutoie ? 'Tutoiement' : 'Vouvoiement';
+}
+
+// ── GENERATE ──────────────────────────────────────────────────────
+function generateMessage() {
+  const prenom   = document.getElementById('firstName').value.trim();
+  const nom      = document.getElementById('lastName').value.trim();
+  const banque   = document.getElementById('company').value.trim();
+  const role     = document.getElementById('jobRole')?.value?.trim()         || '';
+  const contact  = document.getElementById('contactCommun')?.value?.trim()   || '';
+  const dateMail = document.getElementById('datePremierMail')?.value?.trim() || '';
+  const sujet    = document.getElementById('sujetEchange')?.value?.trim()    || '';
+  const actif    = document.getElementById('classeActif')?.value?.trim()     || '';
+
+  // Titre construit automatiquement depuis métier + classe d'actif
+  const titre = actif ? `${state.metier} ${actif}` : state.metier;
+
+  let valid = true;
+  if (!prenom) { showErr('v-firstName'); valid = false; } else hideErr('v-firstName');
+  if (!valid) return;
+
+  // Normalise la date : si format ISO yyyy-mm-dd → dd/mm/yyyy
+  const dateMailFmt = dateMail.match(/^\d{4}-\d{2}-\d{2}$/)
+    ? dateMail.split('-').reverse().join('/')
+    : dateMail;
+  const vars   = { prenom, nom, titre, banque, contrat: state.contract, role, contact, datePremierMail: dateMailFmt, sujetEchange: sujet, genre: state.genre };
+  const isMail = state.canal === 'Mail';
+  const lang   = state.lang;
+  const tv     = state.tutoie && lang === 'fr';
+  const junior = isJunior(state.contract);
+
+  let body = '', subject = '';
+
+  if (isMail) {
+    let tpl;
+    if      (state.msgType === 'candidature')  tpl = buildMailCandidature(lang, state.contract, state.tpl, tv, state.genre, state.metier, actif, vars);
+    else if (state.msgType === 'relance')       tpl = buildMailRelance(lang, state.contract, tv, vars);
+    else if (state.msgType === 'remerciement')  tpl = buildMailRemerciement(lang, state.contract, tv, state.genre, vars);
+    body    = tpl.text;
+    subject = tpl.subject;
+  } else {
+    // LinkedIn
+    if (state.msgType === 'relance') {
+      body = buildLinkedinRelance(tv, lang, vars);
+    } else if (state.msgType === 'remerciement') {
+      body = buildLinkedinRemerciement(tv, lang, vars);
+    } else {
+      body = buildLinkedin(state.tpl, tv, lang, state.metier, actif, vars);
+    }
+  }
+
+  const card   = document.getElementById('outputCard');
+  const bodyEl = document.getElementById('outputBody');
+  const typeEl = document.getElementById('outputType');
+  const subjEl = document.getElementById('outputSubject');
+  const tagEl  = document.getElementById('outputTag');
+
+  bodyEl.textContent = body;
+  typeEl.textContent = isMail ? '✉ Mail' : '🔗 LinkedIn';
+  typeEl.className   = 'output-type ' + (isMail ? 'mail' : 'linkedin');
+  const tagColor = isCDI(state.contract) ? 'badge-gold' : junior ? 'badge-green' : 'badge-blue';
+  tagEl.className  = 'badge ' + tagColor;
+  tagEl.textContent = state.contract + ' · ' + lang.toUpperCase() + (tv ? ' · tutoiement' : '') + ' · ' + state.metier;
+
+  if (isMail && subject) {
+    subjEl.innerHTML = `<strong>Objet :</strong> ${subject}`;
+    subjEl.style.display = 'block';
+  } else { subjEl.style.display = 'none'; }
+
+  card.classList.add('visible');
+  document.getElementById('copyBtn').innerHTML = copyIcon() + ' Copier';
+  document.getElementById('copyBtn').className = 'copy-btn';
+
+  // Mailto button — only show for Mail canal
+  const _mailBtn = document.getElementById('mailtoBtn');
+  if (_mailBtn) _mailBtn.style.display = isMail ? 'block' : 'none';
+  // Always show "Ajouter aux candidatures" after generation
+  const _statsBtn = document.getElementById('addStatsBtn');
+  if (_statsBtn) _statsBtn.style.display = 'block';
+  // Store all needed info for openInMail
+  window._lastMailIsMail = isMail;
+  window._lastPrenom     = prenom;
+  window._lastNom        = nom;
+  window._lastBanque     = banque;
+
+  setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+}
+
+function showErr(id) { document.getElementById(id).classList.add('show'); }
+function hideErr(id) { document.getElementById(id).classList.remove('show'); }
+
+function copyIcon() {
+  return `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>`;
+}
+function checkIcon() {
+  return `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+}
+function copyMessage() {
+  const bodyText = document.getElementById('outputBody').textContent;
+  const subjEl   = document.getElementById('outputSubject');
+  let full = subjEl.style.display !== 'none' ? subjEl.textContent + '\n\n' + bodyText : bodyText;
+  navigator.clipboard.writeText(full).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.innerHTML = checkIcon() + ' Copié !'; btn.className = 'copy-btn copied';
+    setTimeout(() => { btn.innerHTML = copyIcon() + ' Copier'; btn.className = 'copy-btn'; }, 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = full; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+  });
+}
+
+// ── PAGE SWITCH ───────────────────────────────────────────────────
+function switchPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  const _labels = { gen: 'Générateur', tpl: 'Éditeur', banques: 'Banques', suivi: 'Suivi', kanban: 'Kanban' };
+  document.getElementById('headerLabel').textContent = _labels[id] || '';
+  document.getElementById('mainScroll').scrollTop = 0;
+  if (id === 'tpl')    initEditPage();
+  if (id === 'banques') { /* Firebase async */ }
+  if (id === 'suivi')  initSuiviPage();
+  if (id === 'kanban') renderKanban();
+}
+
+// ── ÉDITEUR (note only — templates are now built dynamically) ─────
+const VARS_DOC = [
+  { key: '{{prenom}}', desc: 'Prénom du contact' },
+  { key: '{{titre}}',  desc: 'Titre / poste' },
+  { key: '{{banque}}', desc: 'Banque / entreprise' },
+  { key: '{{contrat}}',desc: 'Type de contrat' },
+  { key: '{{role}}',   desc: 'Intitulé précis du poste' },
+  { key: '{{contact}}',desc: 'Contact commun' },
+  { key: '{{date_premier_mail}}', desc: 'Date du 1er mail' },
+  { key: '{{sujet_echange}}',     desc: 'Sujet entretien' },
+];
+
+function initEditPage() {
+  const cc = document.getElementById('varCheatsheet');
+  if (!cc.innerHTML) {
+    cc.innerHTML = VARS_DOC.map(v =>
+      `<span title="${v.desc}" style="background:var(--s3);border:1px solid var(--border2);border-radius:20px;padding:3px 9px;font-size:0.72rem;font-family:'DM Sans',sans-serif;color:var(--accent);white-space:nowrap;">${v.key}</span>`
+    ).join('');
+  }
+  document.getElementById('editCanalGroup').style.display  = 'none';
+  document.getElementById('mailSubjectEditor').style.display = 'none';
+  document.getElementById('editCanalNote').style.display   = 'block';
+  const tg = document.getElementById('editTplGroup');
+  if (!tg.innerHTML) {
+    tg.innerHTML = `<div style="font-size:0.82rem;color:var(--sub);line-height:1.6;">Les templates sont désormais générés dynamiquement selon le métier, la classe d'actif, la langue et le tutoiement. Il n'y a plus de texte brut à éditer ici.<br><br>Pour personnaliser, modifie directement le code source (fonction <code style="color:var(--accent)">accrocheProfil</code>).</div>`;
+  }
+}
+function selectEditTpl(el) {}
+function switchEditLang(el) {
+  document.querySelectorAll('#editLangGroup .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+function switchEditCanal(el) {}
+function loadEditFields() {}
+function saveTemplate() {}
+function resetTemplate() {}
+function updatePreview() {}
+function insertVar(v) {}
+
+
+// ═══════════════════════════════════════════════════════════════
+// BANQUES — Firebase Firestore sync
+// Banques par défaut hardcodées, customs synchro via Firestore
+// ═══════════════════════════════════════════════════════════════
+
+const DEFAULT_BANKS = [
+  { name: 'BNP Paribas CIB',         domain: '@bnpparibas.com',      format: 'prenom.nom' },
+  { name: 'Société Générale CIB',     domain: '@sgcib.com',           format: 'prenom.nom' },
+  { name: 'Crédit Agricole CIB',      domain: '@ca-cib.com',          format: 'prenom.nom' },
+  { name: 'Natixis CIB',              domain: '@natixis.com',         format: 'prenom.nom' },
+  { name: 'HSBC France',              domain: '@hsbc.fr',             format: 'prenom.nom' },
+  { name: 'Rothschild & Co',          domain: '@rothschildandco.com', format: 'prenom.nom' },
+  { name: 'Lazard',                   domain: '@lazard.com',          format: 'prenom.nom' },
+  { name: 'Goldman Sachs',            domain: '@gs.com',              format: 'prenom.nom' },
+  { name: 'JP Morgan',                domain: '@jpmorgan.com',        format: 'prenom.nom' },
+  { name: 'Morgan Stanley',           domain: '@morganstanley.com',   format: 'prenom.nom' },
+  { name: 'Bank of America',          domain: '@bofa.com',            format: 'prenom.nom' },
+  { name: 'Citi',                     domain: '@citi.com',            format: 'prenom.nom' },
+  { name: 'Wells Fargo',              domain: '@wellsfargo.com',      format: 'prenom.nom' },
+  { name: 'Jefferies',                domain: '@jefferies.com',       format: 'prenom.nom' },
+  { name: 'Barclays',                 domain: '@barclays.com',        format: 'prenom.nom' },
+  { name: 'HSBC Global',              domain: '@hsbc.com',            format: 'prenom.nom' },
+  { name: 'Deutsche Bank',            domain: '@db.com',              format: 'prenom.nom' },
+  { name: 'UBS',                      domain: '@ubs.com',             format: 'prenom.nom' },
+  { name: 'Nomura',                   domain: '@nomura.com',          format: 'prenom.nom' },
+  { name: 'RBC Capital Markets',      domain: '@rbccm.com',           format: 'prenom.nom' },
+  { name: 'Macquarie',                domain: '@macquarie.com',       format: 'prenom.nom' },
+  { name: 'Commerzbank',              domain: '@commerzbank.com',     format: 'prenom.nom' },
+  { name: 'ING',                      domain: '@ing.com',             format: 'prenom.nom' },
+  { name: 'ABN Amro',                 domain: '@nl.abnamro.com',      format: 'prenom.nom' },
+  { name: 'Santander',                domain: '@santander.com',       format: 'prenom.nom' },
+  { name: 'UniCredit',                domain: '@unicredit.eu',        format: 'prenom.nom' },
+  { name: 'Amundi',                   domain: '@amundi.com',          format: 'prenom.nom' },
+  { name: 'AXA Investment Managers',  domain: '@axa-im.com',          format: 'prenom.nom' },
+  { name: 'Tikehau Capital',          domain: '@tikehaucapital.com',  format: 'prenom.nom' },
+  { name: 'Houlihan Lokey',           domain: '@hl.com',              format: 'prenom.nom' },
+  { name: 'Evercore',                 domain: '@evercore.com',        format: 'prenom.nom' },
+  { name: 'Exane BNP Paribas',        domain: '@exane.com',           format: 'prenom.nom' },
+  { name: 'Mizuho',                   domain: '@mizuho-sc.com',       format: 'prenom.nom' },
+  { name: 'MUFG',                     domain: '@mufgsecurities.com',  format: 'prenom.nom' },
+  { name: 'Piper Sandler',            domain: '@pipersandler.com',    format: 'prenom.nom' },
+  { name: 'Intesa Sanpaolo',          domain: '@intesasanpaolo.com',  format: 'prenom.nom' },
+  { name: 'Credit Suisse',            domain: '@credit-suisse.com',   format: 'prenom.nom' },
+  { name: 'Ardian',                   domain: '@ardian.com',          format: 'prenom.nom' },
+  { name: 'Eurazeo',                  domain: '@eurazeo.com',         format: 'prenom.nom' },
+];
+
+let ALL_BANKS = [...DEFAULT_BANKS];
+let db = null; // Firestore instance, initialized async
+
+// ── FIREBASE INIT ─────────────────────────────────────────────────
+async function initFirebase() {
+  try {
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+    const { getFirestore, collection, getDocs, setDoc, deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+
+    const app = initializeApp({
+      apiKey: "AIzaSyDuENX2_5vz7uKJoE1ZpI4ZX_38B__Kn2c",
+      authDomain: "sp-prep.firebaseapp.com",
+      projectId: "sp-prep",
+      storageBucket: "sp-prep.firebasestorage.app",
+      messagingSenderId: "1008863850275",
+      appId: "1:1008863850275:web:294af88aec5dadfc31a696"
+    });
+
+    db = getFirestore(app);
+    window._firestoreFns = { collection, getDocs, setDoc, deleteDoc, doc };
+
+    // Load banks AND candidatures in parallel
+    await Promise.all([
+      loadCustomBanksFromFirestore(),
+      loadCandidaturesFirestore(),
+    ]);
+
+    suiviDbReady = true;
+    renderBankList();
+    renderSuivi();
+    updateSyncStatus('✓ Synchronisé', 'var(--green)');
+  } catch(e) {
+    console.warn('Firebase init failed, using localStorage fallback', e);
+    loadBanksFromLocalStorage();
+    loadCandidaturesLocalStorage();
+    renderBankList();
+    renderSuivi();
+    updateSyncStatus('⚠ Hors ligne', 'var(--gold)');
+  }
+}
+
+// ── FIRESTORE CRUD ────────────────────────────────────────────────
+async function loadCustomBanksFromFirestore() {
+  if (!db) return;
+  try {
+    const { collection, getDocs } = window._firestoreFns;
+    const snap = await getDocs(collection(db, 'finapply_banks'));
+    const custom = [];
+    snap.forEach(d => custom.push(d.data()));
+    // Merge: custom overrides defaults by name
+    const defNames = new Set(DEFAULT_BANKS.map(b => b.name.toLowerCase()));
+    custom.forEach(b => {
+      const idx = ALL_BANKS.findIndex(x => x.name.toLowerCase() === b.name.toLowerCase());
+      if (idx >= 0) ALL_BANKS[idx] = b;
+      else ALL_BANKS.push(b);
+    });
+    updateSyncStatus('✓ Synchronisé', 'var(--green)');
+  } catch(e) {
+    console.warn('Firestore load error', e);
+    updateSyncStatus('⚠ Hors ligne', 'var(--gold)');
+  }
+}
+
+async function saveBankToFirestore(bank) {
+  if (!db) { saveBanksToLocalStorage(); return; }
+  try {
+    const { collection, setDoc, doc } = window._firestoreFns;
+    const id = bank.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    await setDoc(doc(collection(db, 'finapply_banks'), id), bank);
+    updateSyncStatus('✓ Sauvegardé', 'var(--green)');
+  } catch(e) {
+    console.warn('Firestore save error', e);
+    updateSyncStatus('⚠ Erreur sync', 'var(--red)');
+  }
+}
+
+async function deleteBankFromFirestore(name) {
+  if (!db) { saveBanksToLocalStorage(); return; }
+  try {
+    const { collection, deleteDoc, doc } = window._firestoreFns;
+    const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    await deleteDoc(doc(collection(db, 'finapply_banks'), id));
+    updateSyncStatus('✓ Supprimé', 'var(--green)');
+  } catch(e) {
+    console.warn('Firestore delete error', e);
+  }
+}
+
+function updateSyncStatus(msg, color) {
+  const el = document.getElementById('bk-sync-status');
+  if (el) { el.textContent = msg; el.style.color = color; }
+}
+
+// ── LOCALSTORAGE FALLBACK ─────────────────────────────────────────
+function loadBanksFromLocalStorage() {
+  try {
+    const saved = localStorage.getItem('finapply_banks_v2');
+    if (saved) {
+      const custom = JSON.parse(saved);
+      custom.forEach(b => {
+        const idx = ALL_BANKS.findIndex(x => x.name.toLowerCase() === b.name.toLowerCase());
+        if (idx >= 0) ALL_BANKS[idx] = b;
+        else ALL_BANKS.push(b);
+      });
+    }
+  } catch(e) {}
+}
+
+function saveBanksToLocalStorage() {
+  const defNames = new Set(DEFAULT_BANKS.map(b => b.name.toLowerCase()));
+  const custom = ALL_BANKS.filter(b => {
+    const def = DEFAULT_BANKS.find(d => d.name.toLowerCase() === b.name.toLowerCase());
+    return !def || def.domain !== b.domain || def.format !== b.format;
+  });
+  localStorage.setItem('finapply_banks_v2', JSON.stringify(custom));
+}
+
+// ── EMAIL BUILDER ─────────────────────────────────────────────────
+function buildEmail(prenom, nom, bank) {
+  const p = prenom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
+  const n = nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
+  const pInit = p[0] || '';
+  const fmt = bank.format || 'prenom.nom';
+  let local = '';
+  switch(fmt) {
+    case 'prenom.nom':  local = `${p}.${n}`; break;
+    case 'p.nom':       local = `${pInit}.${n}`; break;
+    case 'prenom':      local = p; break;
+    case 'nom.prenom':  local = `${n}.${p}`; break;
+    case 'prenom_nom':  local = `${p}_${n}`; break;
+    case 'p_nom':       local = `${pInit}_${n}`; break;
+    case 'pnom':        local = `${pInit}${n}`; break;
+    case 'prenomnom':   local = `${p}${n}`; break;
+    default:
+      local = fmt.replace('{prenom}', p).replace('{nom}', n).replace('{p}', pInit).replace('{n}', n[0]||'');
+  }
+  return local + bank.domain;
+}
+
+function generateEmail() {
+  const prenom = document.getElementById('bk-firstName').value.trim();
+  const nom    = document.getElementById('bk-lastName').value.trim();
+  if (!prenom || !nom || !selectedBank) {
+    if (!prenom || !nom) alert('Renseigne le prénom et le nom.');
+    else alert('Sélectionne une banque dans la liste.');
+    return;
+  }
+  const email = buildEmail(prenom, nom, selectedBank);
+  document.getElementById('bk-emailDisplay').textContent = email;
+  document.getElementById('bk-emailResult').style.display = 'block';
+  window._currentEmail = email;
+}
+
+function copyEmail() {
+  const email = document.getElementById('bk-emailDisplay').textContent;
+  navigator.clipboard.writeText(email).then(() => {
+    const btn = document.getElementById('copyEmailBtn');
+    btn.textContent = '✓ Copié !'; btn.style.color = 'var(--green)'; btn.style.borderColor = 'var(--green)';
+    setTimeout(() => { btn.textContent = 'Copier'; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);
+  });
+}
+
+// ── DROPDOWN SEARCH ───────────────────────────────────────────────
+let selectedBank = null;
+
+function filterBanks() {
+  const q  = document.getElementById('bk-bankInput').value.toLowerCase();
+  const dd = document.getElementById('bk-dropdown');
+  const matches = ALL_BANKS.filter(b => b.name.toLowerCase().includes(q)).slice(0, 8);
+  if (!matches.length || !q) { dd.style.display = 'none'; return; }
+  dd.innerHTML = matches.map(b =>
+    `<div onclick="selectBank(${JSON.stringify(b.name).replace(/"/g, '&quot;')})"
+      style="padding:10px 14px;font-size:0.85rem;cursor:pointer;border-bottom:1px solid var(--border);color:var(--text);"
+      onmousedown="event.preventDefault()">
+      <span>${b.name}</span>
+      <span style="color:var(--muted);font-size:0.75rem;margin-left:6px;">${b.domain}</span>
+    </div>`
+  ).join('');
+  dd.style.display = 'block';
+}
+
+function showDropdown() {
+  if (document.getElementById('bk-bankInput').value) filterBanks();
+}
+function hideDropdownDelayed() {
+  setTimeout(() => { document.getElementById('bk-dropdown').style.display = 'none'; }, 200);
+}
+function selectBank(name) {
+  selectedBank = ALL_BANKS.find(b => b.name === name);
+  document.getElementById('bk-bankInput').value = name;
+  document.getElementById('bk-dropdown').style.display = 'none';
+}
+
+// ── BANK LIST ─────────────────────────────────────────────────────
+function renderBankList() {
+  const q = (document.getElementById('bk-search')?.value || '').toLowerCase();
+  const filtered = q ? ALL_BANKS.filter(b => b.name.toLowerCase().includes(q)) : ALL_BANKS;
+  const container = document.getElementById('bk-list');
+  if (!container) return;
+  const defNames = new Set(DEFAULT_BANKS.map(b => b.name.toLowerCase()));
+  container.innerHTML = filtered.map(b => {
+    const isCustom = !defNames.has(b.name.toLowerCase()) ||
+      DEFAULT_BANKS.find(d => d.name.toLowerCase() === b.name.toLowerCase() && (d.domain !== b.domain || d.format !== b.format));
+    return `<div style="display:flex;align-items:center;justify-content:space-between;background:var(--s2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:8px;">
+      <div>
+        <div style="font-size:0.88rem;font-weight:500;color:var(--text);">${b.name}${isCustom ? ' <span style="font-size:0.65rem;color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:1px 6px;margin-left:4px;">custom</span>' : ''}</div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${b.domain} · ${b.format || 'prenom.nom'}</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="editBank('${b.name.replace(/'/g, "\\'")}')" style="background:none;border:1px solid var(--border2);border-radius:6px;padding:5px 9px;color:var(--sub);font-size:0.72rem;cursor:pointer;">✏️</button>
+        ${isCustom ? `<button onclick="deleteBank('${b.name.replace(/'/g, "\\'")}', event)" style="background:none;border:1px solid var(--border2);border-radius:6px;padding:5px 9px;color:var(--red);font-size:0.72rem;cursor:pointer;">✕</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── MODAL ADD/EDIT ────────────────────────────────────────────────
+let editingBankName = null;
+
+function selectFormat(el) {
+  document.querySelectorAll('#formatPills .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('bk-modal-format').value = el.dataset.fmt;
+  updateFormatPreview();
+}
+
+function updateFormatPreview() {
+  const fmt   = document.getElementById('bk-modal-format')?.value || 'prenom.nom';
+  const domain= document.getElementById('bk-modal-domain')?.value || '@domain.com';
+  const prev  = document.getElementById('bk-format-preview');
+  if (!prev) return;
+  // Build preview with example name "Sophie Martin"
+  const p = 'sophie', n = 'martin', pi = 's';
+  let local = '';
+  switch(fmt) {
+    case 'prenom.nom':  local = `${p}.${n}`; break;
+    case 'p.nom':       local = `${pi}.${n}`; break;
+    case 'prenom':      local = p; break;
+    case 'nom.prenom':  local = `${n}.${p}`; break;
+    case 'prenom_nom':  local = `${p}_${n}`; break;
+    case 'p_nom':       local = `${pi}_${n}`; break;
+    case 'pnom':        local = `${pi}${n}`; break;
+    case 'prenomnom':   local = `${p}${n}`; break;
+    default:            local = fmt;
+  }
+  const d = domain.startsWith('@') ? domain : '@' + domain;
+  prev.textContent = local + d;
+}
+
+function openAddBank() {
+  editingBankName = null;
+  document.getElementById('bk-modal-title').textContent = 'Ajouter une banque';
+  document.getElementById('bk-modal-name').value = '';
+  document.getElementById('bk-modal-domain').value = '';
+  document.getElementById('bk-modal-format').value = 'prenom.nom';
+  document.querySelectorAll('#formatPills .pill').forEach(p => p.classList.toggle('active', p.dataset.fmt === 'prenom.nom'));
+  updateFormatPreview();
+  document.getElementById('bk-modal').style.display = 'flex';
+}
+
+function editBank(name) {
+  const b = ALL_BANKS.find(b => b.name === name);
+  if (!b) return;
+  editingBankName = name;
+  document.getElementById('bk-modal-title').textContent = 'Modifier la banque';
+  document.getElementById('bk-modal-name').value = b.name;
+  document.getElementById('bk-modal-domain').value = b.domain;
+  const fmt = b.format || 'prenom.nom';
+  document.getElementById('bk-modal-format').value = fmt;
+  document.querySelectorAll('#formatPills .pill').forEach(p => p.classList.toggle('active', p.dataset.fmt === fmt));
+  updateFormatPreview();
+  document.getElementById('bk-modal').style.display = 'flex';
+}
+
+function closeBankModal() {
+  document.getElementById('bk-modal').style.display = 'none';
+}
+
+async function saveBankModal() {
+  const name   = document.getElementById('bk-modal-name').value.trim();
+  const domain = document.getElementById('bk-modal-domain').value.trim();
+  const fmt    = document.getElementById('bk-modal-format').value.trim() || 'prenom.nom';
+  if (!name || !domain) { alert('Nom et domaine requis.'); return; }
+  const domainClean = domain.startsWith('@') ? domain : '@' + domain;
+  const bank = { name, domain: domainClean, format: fmt };
+
+  if (editingBankName) {
+    const idx = ALL_BANKS.findIndex(b => b.name === editingBankName);
+    if (idx >= 0) ALL_BANKS[idx] = bank;
+    // If name changed, delete old doc
+    if (editingBankName !== name) await deleteBankFromFirestore(editingBankName);
+  } else {
+    ALL_BANKS.push(bank);
+  }
+
+  await saveBankToFirestore(bank);
+  closeBankModal();
+  renderBankList();
+}
+
+async function deleteBank(name, e) {
+  e.stopPropagation();
+  if (!confirm(`Supprimer "${name}" ?`)) return;
+  ALL_BANKS = ALL_BANKS.filter(b => b.name !== name);
+  await deleteBankFromFirestore(name);
+  renderBankList();
+}
+
+// Init Firebase on load
+initFirebase();
+
+// ── MAILTO (depuis page générateur) ─────────────────────────────
+function openInMail() {
+  const bodyText = document.getElementById('outputBody').textContent;
+  const subjEl   = document.getElementById('outputSubject');
+  let subject = '';
+  if (subjEl && subjEl.style.display !== 'none') {
+    subject = subjEl.textContent.replace(/^Objet\s*:\s*/i, '').trim();
+  }
+  const prenom = window._lastPrenom || '';
+  const nom    = window._lastNom    || '';
+  const banque = window._lastBanque || '';
+  let to = '';
+  if (prenom && nom && banque && typeof ALL_BANKS !== 'undefined') {
+    const bank = (window._selectedCompanyBank &&
+                  window._selectedCompanyBank.name.toLowerCase() === banque.toLowerCase())
+      ? window._selectedCompanyBank
+      : ALL_BANKS.find(b => {
+          const bq = banque.toLowerCase().trim();
+          const bn = b.name.toLowerCase();
+          return bn === bq || bn.includes(bq) || bq.includes(bn);
+        });
+    if (bank) to = buildEmail(prenom, nom, bank);
+  }
+  const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
+  window.location.href = mailto;
+}
+
+// ── COMPANY AUTOCOMPLETE (page Générateur) ────────────────────────
+function filterCompany() {
+  const q  = (document.getElementById('company')?.value || '').toLowerCase().trim();
+  const dd = document.getElementById('company-dropdown');
+  if (!dd) return;
+  if (!q) { dd.style.display = 'none'; return; }
+  const matches = (typeof ALL_BANKS !== 'undefined' ? ALL_BANKS : [])
+    .filter(b => b.name.toLowerCase().includes(q))
+    .slice(0, 8);
+  if (!matches.length) { dd.style.display = 'none'; return; }
+  dd.innerHTML = matches.map(b =>
+    `<div onclick="selectCompany(${JSON.stringify(b.name).replace(/"/g, '&quot;')})"
+      style="padding:10px 14px;font-size:0.85rem;cursor:pointer;border-bottom:1px solid var(--border);color:var(--text);"
+      onmousedown="event.preventDefault()">
+      <span>${b.name}</span>
+      <span style="color:var(--muted);font-size:0.72rem;margin-left:6px;">${b.domain}</span>
+    </div>`
+  ).join('');
+  dd.style.display = 'block';
+}
+
+function showCompanyDropdown() {
+  if (document.getElementById('company')?.value?.trim()) filterCompany();
+}
+
+function hideCompanyDropdownDelayed() {
+  setTimeout(() => {
+    const dd = document.getElementById('company-dropdown');
+    if (dd) dd.style.display = 'none';
+  }, 200);
+}
+
+function selectCompany(name) {
+  const input = document.getElementById('company');
+  if (input) input.value = name;
+  const dd = document.getElementById('company-dropdown');
+  if (dd) dd.style.display = 'none';
+  if (typeof ALL_BANKS !== 'undefined') {
+    window._selectedCompanyBank = ALL_BANKS.find(b => b.name === name) || null;
+  }
+}
+
+
+
+
+// ═══════════════════════════════════════════════════════════════
+// SUIVI DES CANDIDATURES — Firebase Firestore
+// ═══════════════════════════════════════════════════════════════
+
+let candidatures = [];
+let suiviFilter  = 'tous';
+let editingCandId = null;
+let suiviDbReady  = false;
+
+const STATUT_COLORS = {
+  'Envoyé':    { color: 'var(--accent)',  bg: 'var(--accent-dim)' },
+  'Relancé':   { color: 'var(--gold)',    bg: 'var(--gold-dim)' },
+  'Entretien': { color: '#a78bfa',        bg: 'rgba(167,139,250,0.12)' },
+  'Refus':     { color: 'var(--red)',     bg: 'rgba(255,94,122,0.12)' },
+  'Accepté':   { color: 'var(--green)',   bg: 'var(--green-dim)' },
+};
+
+// ── FIREBASE SUIVI INIT ───────────────────────────────────────────
+async function initSuiviFirestore() {
+  // Data already loaded by initFirebase — just render
+  renderSuivi();
+}
+
+async function loadCandidaturesFirestore() {
+  if (!db) return;
+  try {
+    const { collection, getDocs } = window._firestoreFns;
+    const snap = await getDocs(collection(db, 'finapply_candidatures'));
+    const fromFirestore = [];
+    snap.forEach(d => fromFirestore.push({ id: d.id, ...d.data() }));
+
+    if (fromFirestore.length > 0) {
+      // Firestore has data — use it as source of truth
+      candidatures = fromFirestore;
+      candidatures.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      saveCandidaturesLocalStorage(); // keep localStorage in sync
+    } else {
+      // Firestore empty — check if localStorage has data to migrate
+      const localData = JSON.parse(localStorage.getItem('finapply_candidatures') || '[]');
+      if (localData.length > 0) {
+        // Migrate localStorage → Firestore (first time on new device)
+        candidatures = localData;
+        for (const c of candidatures) {
+          await saveCandidatureFirestore(c);
+        }
+      } else {
+        // Truly empty — no data anywhere
+        candidatures = [];
+      }
+    }
+  } catch(e) {
+    console.warn('Suivi Firestore load error, using localStorage:', e);
+    loadCandidaturesLocalStorage();
+  }
+}
+
+async function saveCandidatureFirestore(cand) {
+  // Always write to localStorage as backup
+  saveCandidaturesLocalStorage();
+  if (!db) return;
+  try {
+    const { collection, setDoc, doc } = window._firestoreFns;
+    await setDoc(doc(collection(db, 'finapply_candidatures'), cand.id), cand);
+  } catch(e) { console.warn('Suivi save error', e); }
+}
+
+async function deleteCandidatureFirestore(id) {
+  // Always update localStorage
+  saveCandidaturesLocalStorage();
+  if (!db) return;
+  try {
+    const { collection, deleteDoc, doc } = window._firestoreFns;
+    await deleteDoc(doc(collection(db, 'finapply_candidatures'), id));
+  } catch(e) { console.warn('Suivi delete error', e); }
+}
+
+function loadCandidaturesLocalStorage() {
+  try {
+    const s = localStorage.getItem('finapply_candidatures');
+    if (s) candidatures = JSON.parse(s);
+  } catch(e) {}
+}
+function saveCandidaturesLocalStorage() {
+  localStorage.setItem('finapply_candidatures', JSON.stringify(candidatures));
+}
+
+function genCandId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+// ── ADD FROM GENERATOR ────────────────────────────────────────────
+async function addCandidatureFromGenerator() {
+  const prenom  = document.getElementById('firstName')?.value?.trim() || '';
+  const nom     = document.getElementById('lastName')?.value?.trim()  || '';
+  const banque  = document.getElementById('company')?.value?.trim()   || '';
+  const actif   = document.getElementById('classeActif')?.value?.trim() || '';
+  const contrat = state.contract;
+  const canal   = state.canal;
+  const metier  = state.metier;
+
+  if (!banque) { alert('Renseigne la banque avant d\'ajouter.'); return; }
+
+  const cand = {
+    id:      genCandId(),
+    banque,
+    poste:   metier + (actif ? ' ' + actif : ''),
+    contact: (prenom + ' ' + nom).trim(),
+    date:    new Date().toISOString().split('T')[0],
+    relance: '',
+    contrat,
+    canal,
+    statut:  'Envoyé',
+    notes:   '',
+  };
+
+  candidatures.unshift(cand);
+  await saveCandidatureFirestore(cand);
+
+  // Visual feedback
+  const btn = document.getElementById('addStatsBtn');
+  if (btn) {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Ajouté aux candidatures !';
+    btn.style.color = 'var(--green)';
+    btn.style.borderColor = 'var(--green)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; btn.style.borderColor = ''; }, 2500);
+  }
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────
+function openCandModal(id) {
+  editingCandId = id;
+  if (id) {
+    const c = candidatures.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('cand-modal-title').textContent = 'Modifier';
+    // Show relance + duplicate buttons only in edit mode
+    document.getElementById('relanceBtn').style.display = 'inline-block';
+    document.getElementById('dupBtn').style.display     = 'inline-block';
+    // Show relance counter
+    const infoEl = document.getElementById('cand-relances-info');
+    if (infoEl) {
+      const count = c.relanceCount || 0;
+      const lastDate = c.lastRelanceDate
+        ? fmtDate(c.lastRelanceDate)
+        : null;
+      if (count > 0) {
+        infoEl.style.display = 'block';
+        infoEl.innerHTML = `<span style="color:var(--gold);">⏰ Relancé ${count} fois</span>${lastDate ? ` · Dernière relance : <strong>${lastDate}</strong>` : ''}`;
+      } else {
+        infoEl.style.display = 'none';
+      }
+    }
+    document.getElementById('cand-banque').value  = c.banque   || '';
+    document.getElementById('cand-poste').value   = c.poste    || '';
+    document.getElementById('cand-contact').value = c.contact  || '';
+    document.getElementById('cand-date').value    = c.date     || '';
+    document.getElementById('cand-relance').value = c.relance  || '';
+    document.getElementById('cand-lien').value    = c.lien     || '';
+    document.getElementById('cand-contrat').value = c.contrat  || 'Stage';
+    document.getElementById('cand-canal').value   = c.canal    || 'Mail';
+    document.getElementById('cand-statut').value  = c.statut   || 'Envoyé';
+    document.getElementById('cand-notes').value   = c.notes    || '';
+  } else {
+    document.getElementById('cand-modal-title').textContent = 'Ajouter une candidature';
+    document.getElementById('relanceBtn').style.display = 'none';
+    document.getElementById('dupBtn').style.display     = 'none';
+    document.getElementById('cand-relances-info').style.display = 'none';
+    document.getElementById('cand-banque').value  = '';
+    document.getElementById('cand-poste').value   = '';
+    document.getElementById('cand-contact').value = '';
+    document.getElementById('cand-date').value    = new Date().toISOString().split('T')[0];
+    document.getElementById('cand-relance').value = '';
+    document.getElementById('cand-lien').value    = '';
+    document.getElementById('cand-contrat').value = 'Stage';
+    document.getElementById('cand-canal').value   = 'Mail';
+    document.getElementById('cand-statut').value  = 'Envoyé';
+    document.getElementById('cand-notes').value   = '';
+    editingCandId = null;
+  }
+  document.getElementById('cand-modal').style.display = 'flex';
+}
+
+function closeCandModal() {
+  document.getElementById('cand-modal').style.display = 'none';
+}
+
+async function saveCandModal() {
+  const banque  = document.getElementById('cand-banque').value.trim();
+  if (!banque) { alert('La banque est requise.'); return; }
+  const cand = {
+    id:      editingCandId || genCandId(),
+    banque,
+    poste:   document.getElementById('cand-poste').value.trim(),
+    contact: document.getElementById('cand-contact').value.trim(),
+    date:    document.getElementById('cand-date').value,
+    relance: document.getElementById('cand-relance').value,
+    lien:    document.getElementById('cand-lien').value.trim(),
+    contrat: document.getElementById('cand-contrat').value,
+    canal:   document.getElementById('cand-canal').value,
+    statut:  document.getElementById('cand-statut').value,
+    notes:   document.getElementById('cand-notes').value.trim(),
+  };
+  if (editingCandId) {
+    const idx = candidatures.findIndex(x => x.id === editingCandId);
+    if (idx >= 0) candidatures[idx] = cand;
+  } else {
+    candidatures.unshift(cand);
+  }
+  await saveCandidatureFirestore(cand);
+  closeCandModal();
+  renderSuivi();
+}
+
+async function deleteCand(id, e) {
+  e.stopPropagation();
+  if (!confirm('Supprimer cette candidature ?')) return;
+  candidatures = candidatures.filter(x => x.id !== id);
+  await deleteCandidatureFirestore(id);
+  renderSuivi();
+}
+
+// ── FILTER ────────────────────────────────────────────────────────
+function setFilter(el) {
+  document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  suiviFilter = el.dataset.filter;
+  renderSuivi();
+}
+
+// ── RENDER LIST ───────────────────────────────────────────────────
+function renderSuivi() {
+  updateStats();
+  updateRappels();
+  const tri = document.getElementById('suivi-tri')?.value || 'date-desc';
+  const STATUT_ORDER = {'Entretien':0,'Accepté':1,'Relancé':2,'Envoyé':3,'Refus':4};
+  let allSorted = [...candidatures];
+  if (tri==='date-desc') allSorted.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  else if (tri==='date-asc') allSorted.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  else if (tri==='statut') allSorted.sort((a,b)=>(STATUT_ORDER[a.statut]??9)-(STATUT_ORDER[b.statut]??9));
+  else if (tri==='banque') allSorted.sort((a,b)=>(a.banque||'').localeCompare(b.banque||''));
+  const searchQ = (document.getElementById('suivi-search')?.value || '').toLowerCase().trim();
+  // By default hide archived unless filter='archivé'
+  let filtered;
+  if (suiviFilter === 'archivé') {
+    filtered = allSorted.filter(c => c.archived);
+  } else if (suiviFilter === 'a-relancer') {
+    filtered = allSorted.filter(c => !c.archived && isRelanceOverdue(c));
+  } else if (suiviFilter === 'tous') {
+    filtered = allSorted.filter(c => !c.archived);
+  } else {
+    filtered = allSorted.filter(c => !c.archived && c.statut === suiviFilter);
+  }
+  if (searchQ) {
+    filtered = filtered.filter(c =>
+      (c.banque  || '').toLowerCase().includes(searchQ) ||
+      (c.contact || '').toLowerCase().includes(searchQ) ||
+      (c.poste   || '').toLowerCase().includes(searchQ) ||
+      (c.notes   || '').toLowerCase().includes(searchQ)
+    );
+  }
+  const container = document.getElementById('suivi-list');
+  if (!container) return;
+  if (!filtered.length) {
+    container.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:0.85rem;padding:30px 0;">Aucune candidature${suiviFilter !== 'tous' ? ' avec ce statut' : ''}.</div>`;
+    return;
+  }
+  container.innerHTML = filtered.map(c => {
+    const sc = STATUT_COLORS[c.statut] || { color: 'var(--sub)', bg: 'var(--s3)' };
+    const dateStr = c.date ? fmtDate(c.date) : '';
+    const _overdue = isRelanceOverdue(c);
+    return `<div style="background:var(--s2);border:1px solid ${_overdue ? 'var(--red)' : 'var(--border)'};border-radius:var(--r-sm);padding:13px 14px;margin-bottom:8px;cursor:pointer;" onclick="openCandModal('${c.id}')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px;">
+            <span style="font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;color:var(--text);">${c.banque}</span>
+            <span style="font-size:0.65rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;background:${sc.bg};color:${sc.color};border-radius:20px;padding:2px 8px;">${c.statut}</span>
+            ${_overdue ? '<span style="font-size:0.62rem;color:var(--red);font-weight:600;">⏰</span>' : ''}
+          </div>
+          <div style="font-size:0.78rem;color:var(--sub);">${c.poste || ''}${c.contrat ? ' · ' + c.contrat : ''}</div>
+          ${c.contact ? `<div style="font-size:0.73rem;color:var(--muted);margin-top:2px;">👤 ${c.contact}</div>` : ''}
+          ${c.relanceCount ? `<div style="font-size:0.68rem;color:var(--gold);margin-top:2px;">⏰ Relancé ${c.relanceCount} fois${c.lastRelanceDate ? ' · ' + fmtDate(c.lastRelanceDate) : ''}</div>` : ''}
+          ${c.notes ? `<div style="font-size:0.73rem;color:var(--muted);margin-top:3px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.notes}</div>` : ''}
+          ${c.lien ? `<a href="${c.lien}" target="_blank" onclick="event.stopPropagation()" style="font-size:0.7rem;color:var(--accent);margin-top:2px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🔗 Voir l'offre</a>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+          ${dateStr ? `<span style="font-size:0.72rem;color:var(--muted);">${dateStr}</span>` : ''}
+          ${c.relance ? `<span style="font-size:0.68rem;color:var(--gold);white-space:nowrap;">⏰ ${fmtDate(c.relance)}</span>` : ''}
+          <span style="font-size:0.7rem;color:var(--muted);background:var(--s3);border-radius:4px;padding:2px 6px;">${c.canal || ''}</span>
+          <button onclick="archiveCand('${c.id}', event)" style="background:none;border:none;color:var(--muted);font-size:0.78rem;cursor:pointer;padding:2px 4px;" title="${c.archived ? 'Désarchiver' : 'Archiver'}">${c.archived ? '📤' : '📦'}</button>
+          <button onclick="deleteCand('${c.id}', event)" style="background:none;border:none;color:var(--muted);font-size:0.8rem;cursor:pointer;padding:2px 4px;" title="Supprimer">✕</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── STATS ─────────────────────────────────────────────────────────
+function updateStats() {
+  const active = candidatures.filter(c => !c.archived);
+  const total = active.length;
+  const reponses = active.filter(c => ['Entretien','Accepté'].includes(c.statut)).length;
+  const tauxReponse = total ? Math.round(reponses / total * 100) : 0;
+
+  const kpiTotal = document.getElementById('kpi-total');
+  const kpiRep   = document.getElementById('kpi-reponse');
+  if (kpiTotal) kpiTotal.textContent = total;
+  if (kpiRep)   kpiRep.textContent   = tauxReponse + '%';
+
+  // Statuts
+  const statutEl = document.getElementById('stat-statuts');
+  if (statutEl) {
+    const counts = {};
+    Object.keys(STATUT_COLORS).forEach(s => counts[s] = 0);
+    active.forEach(c => { if (counts[c.statut] !== undefined) counts[c.statut]++; });
+    const max = Math.max(...Object.values(counts), 1);
+    statutEl.innerHTML = Object.entries(counts).map(([s, n]) => {
+      const sc = STATUT_COLORS[s];
+      const pct = Math.round(n / max * 100);
+      return `<div style="margin-bottom:7px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.75rem;margin-bottom:3px;">
+          <span style="color:${sc.color};">${s}</span>
+          <span style="color:var(--muted);">${n}</span>
+        </div>
+        <div style="height:5px;background:var(--s3);border-radius:3px;">
+          <div style="height:100%;width:${pct}%;background:${sc.color};border-radius:3px;transition:width .4s;"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Contrats
+  const contratEl = document.getElementById('stat-contrats');
+  if (contratEl) {
+    const counts = {};
+    active.forEach(c => { counts[c.contrat] = (counts[c.contrat] || 0) + 1; });
+    contratEl.innerHTML = Object.entries(counts).sort((a,b) => b[1]-a[1]).map(([k,v]) =>
+      `<div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:5px;">
+        <span style="color:var(--sub);">${k}</span>
+        <span style="color:var(--text);font-weight:500;">${v}</span>
+      </div>`
+    ).join('') || '<div style="color:var(--muted);font-size:0.78rem;">—</div>';
+  }
+
+  // Canaux
+  const canalEl = document.getElementById('stat-canaux');
+  if (canalEl) {
+    const counts = {};
+    active.forEach(c => { counts[c.canal] = (counts[c.canal] || 0) + 1; });
+    canalEl.innerHTML = Object.entries(counts).sort((a,b) => b[1]-a[1]).map(([k,v]) =>
+      `<div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:5px;">
+        <span style="color:var(--sub);">${k}</span>
+        <span style="color:var(--text);font-weight:500;">${v}</span>
+      </div>`
+    ).join('') || '<div style="color:var(--muted);font-size:0.78rem;">—</div>';
+  }
+
+  // Timeline (last 8 weeks)
+  const tlEl = document.getElementById('stat-timeline');
+  if (tlEl && candidatures.length) {
+    const now    = new Date();
+    const weeks  = {};
+    for (let i = 7; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i * 7);
+      const key = d.toISOString().slice(0, 10);
+      weeks[key] = 0;
+    }
+    candidatures.forEach(c => {
+      if (!c.date) return;
+      const d = new Date(c.date);
+      const weekKeys = Object.keys(weeks);
+      for (let i = weekKeys.length - 1; i >= 0; i--) {
+        if (new Date(weekKeys[i]) <= d) {
+          weeks[weekKeys[i]]++;
+          break;
+        }
+      }
+    });
+    const vals  = Object.values(weeks);
+    const maxV  = Math.max(...vals, 1);
+    const labels = Object.keys(weeks).map(k => {
+      const d = new Date(k);
+      return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+    });
+    tlEl.innerHTML = vals.map((v, i) => `
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">
+        <div style="width:100%;background:var(--accent);border-radius:3px 3px 0 0;height:${Math.max(4, Math.round(v/maxV*44))}px;opacity:${v ? 1 : 0.2};"></div>
+        <div style="font-size:0.58rem;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg);height:28px;overflow:hidden;">${labels[i]}</div>
+      </div>`).join('');
+  } else if (tlEl) {
+    tlEl.innerHTML = '<div style="color:var(--muted);font-size:0.78rem;line-height:50px;">Aucune donnée</div>';
+  }
+}
+
+// switchPage handles suivi inline (see original switchPage function above)
+
+function initSuiviPage() {
+  if (candidatures.length === 0 && !suiviDbReady) {
+    initSuiviFirestore();
+  } else {
+    renderSuivi();
+  }
+}
+
+// addStatsBtn shown inline in generateMessage (see above)
+
+// Firebase loads everything in initFirebase() above
+
+// ── RAPPELS ───────────────────────────────────────────────────────
+function getRappelJours() {
+  const el = document.getElementById('rappel-jours');
+  if (el) return parseInt(el.value || '14', 10);
+  return parseInt(localStorage.getItem('finapply_rappel_jours') || '14', 10);
+}
+function isRelanceOverdue(c) {
+  if (!['Envoyé','Relancé'].includes(c.statut)) return false;
+  // Par candidature : si une date de relance est définie, utiliser celle-là
+  if (c.relance) {
+    return new Date() >= new Date(c.relance + 'T12:00:00');
+  }
+  // Sinon : délai global depuis la date d'envoi
+  if (!c.date) return false;
+  const diff = Math.floor((new Date() - new Date(c.date + 'T12:00:00')) / 86400000);
+  return diff >= getRappelJours();
+}
+function updateRappels() {
+  const overdue = candidatures.filter(c => isRelanceOverdue(c));
+  const banner  = document.getElementById('rappel-banner');
+  const listEl  = document.getElementById('rappel-list');
+  if (!banner || !listEl) return;
+  banner.style.display = overdue.length ? 'block' : 'none';
+  updateNavBadge();
+  listEl.innerHTML = overdue.map(c => {
+    const days = Math.floor((new Date() - new Date(c.date + 'T12:00:00')) / 86400000);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,94,122,0.06);border-radius:6px;padding:7px 10px;margin-bottom:4px;">
+      <div><span style="font-size:0.82rem;font-weight:600;color:var(--text);">${c.banque}</span><span style="font-size:0.72rem;color:var(--muted);margin-left:6px;">${c.poste||''}</span></div>
+      <span style="font-size:0.72rem;color:var(--red);font-weight:600;white-space:nowrap;">J+${days}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────────
+function exportCSV() {
+  if (!candidatures.length) { alert('Aucune candidature à exporter.'); return; }
+  const headers = ['Banque','Poste','Contrat','Canal','Contact','Date','Statut','Notes'];
+  const rows = candidatures.map(c =>
+    [c.banque,c.poste,c.contrat,c.canal,c.contact,c.date,c.statut,c.notes]
+    .map(v => `"${(v||'').replace(/"/g,'""')}"`)
+  );
+  const csv = [headers.join(';'), ...rows.map(r=>r.join(';'))].join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=`candidatures_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+// ── LINKEDIN BANK DETECTION ───────────────────────────────────────
+const LINKEDIN_DOMAIN_MAP = {
+  'bnpparibas':{'name':'BNP Paribas CIB','domain':'@bnpparibas.com'},
+  'sgcib':{'name':'Société Générale CIB','domain':'@sgcib.com'},
+  'societegenerale':{'name':'Société Générale CIB','domain':'@sgcib.com'},
+  'cacib':{'name':'Crédit Agricole CIB','domain':'@ca-cib.com'},
+  'creditagricole':{'name':'Crédit Agricole CIB','domain':'@ca-cib.com'},
+  'natixis':{'name':'Natixis CIB','domain':'@natixis.com'},
+  'hsbc':{'name':'HSBC France','domain':'@hsbc.fr'},
+  'goldmansachs':{'name':'Goldman Sachs','domain':'@gs.com'},
+  'jpmorgan':{'name':'JP Morgan','domain':'@jpmorgan.com'},
+  'morganstanley':{'name':'Morgan Stanley','domain':'@morganstanley.com'},
+  'barclays':{'name':'Barclays','domain':'@barclays.com'},
+  'deutsche':{'name':'Deutsche Bank','domain':'@db.com'},
+  'ubs':{'name':'UBS','domain':'@ubs.com'},
+  'nomura':{'name':'Nomura','domain':'@nomura.com'},
+  'rbc':{'name':'RBC Capital Markets','domain':'@rbccm.com'},
+  'macquarie':{'name':'Macquarie','domain':'@macquarie.com'},
+  'commerzbank':{'name':'Commerzbank','domain':'@commerzbank.com'},
+  'jefferies':{'name':'Jefferies','domain':'@jefferies.com'},
+  'lazard':{'name':'Lazard','domain':'@lazard.com'},
+  'rothschild':{'name':'Rothschild & Co','domain':'@rothschildandco.com'},
+  'evercore':{'name':'Evercore','domain':'@evercore.com'},
+  'amundi':{'name':'Amundi','domain':'@amundi.com'},
+  'mizuho':{'name':'Mizuho','domain':'@mizuho-sc.com'},
+  'unicredit':{'name':'UniCredit','domain':'@unicredit.eu'},
+  'citi':{'name':'Citi','domain':'@citi.com'},
+  'wellsfargo':{'name':'Wells Fargo','domain':'@wellsfargo.com'},
+  'bankofamerica':{'name':'Bank of America','domain':'@bofa.com'},
+};
+
+function detectBankFromLinkedIn() {
+  const url   = (document.getElementById('bk-linkedin-url')?.value||'').trim().toLowerCase();
+  const msgEl = document.getElementById('bk-linkedin-msg');
+  if (!url) { if(msgEl){msgEl.textContent='Colle une URL LinkedIn.';} return; }
+
+  let firstName='', lastName='', detected=null;
+  const msgs = [];
+
+  // ── CAS 1 : URL profil individuel /in/prenom-nom ────────────────
+  // Extrait prénom + nom depuis le slug LinkedIn
+  const inMatch = url.match(/linkedin\.com\/in\/([a-zA-Z0-9\-]+)\/?/);
+  if (inMatch) {
+    let parts = inMatch[1].replace(/\/$/, '').toLowerCase().split('-').filter(Boolean);
+    // Supprimer le suffixe ID seulement s'il y a 3+ parties ET que la dernière
+    // ressemble à un ID (chiffres mélangés ou pas de voyelles)
+    if (parts.length >= 3) {
+      const last = parts[parts.length - 1];
+      const looksLikeId = /^[a-z]{1,3}[0-9]+[a-z0-9]*$/.test(last) ||
+        (/^[a-z0-9]{4,8}$/.test(last) && !/[aeiou]/.test(last));
+      if (looksLikeId) parts = parts.slice(0, -1);
+    }
+    if (parts.length >= 2) {
+      firstName = parts[0];
+      lastName  = parts.slice(1).join('-');
+    } else if (parts.length === 1) {
+      firstName = parts[0];
+    }
+    if (firstName) msgs.push('Prénom : ' + cap(firstName));
+    if (lastName)  msgs.push('Nom : ' + cap(lastName));
+  }
+
+  // ── CAS 2 : URL page entreprise /company/nom-banque ──────────────
+  // Là on peut détecter la banque directement depuis le slug
+  const companyMatch = url.match(/linkedin\.com\/company\/([a-z0-9\-]+)/);
+  if (companyMatch) {
+    const compSlug = companyMatch[1].replace(/-/g,'').toLowerCase();
+    for (const [key, bank] of Object.entries(LINKEDIN_DOMAIN_MAP)) {
+      if (compSlug.includes(key) || key.includes(compSlug)) { detected=bank; break; }
+    }
+    if (!detected && typeof ALL_BANKS !== 'undefined') {
+      for (const b of ALL_BANKS) {
+        const bn = b.name.toLowerCase().replace(/[^a-z]/g,'');
+        if (compSlug.includes(bn.slice(0,6)) || bn.includes(compSlug.slice(0,6))) { detected=b; break; }
+      }
+    }
+  }
+
+  // ── Remplir les champs ────────────────────────────────────────────
+  if (firstName) document.getElementById('bk-firstName').value = cap(firstName);
+  if (lastName)  document.getElementById('bk-lastName').value  = cap(lastName);
+
+  if (detected) {
+    selectBank(detected.name);
+    msgs.unshift(`✓ Banque : ${detected.name}`);
+    if (msgEl) { msgEl.style.color='var(--green)'; msgEl.textContent=msgs.join(' · '); }
+    if (firstName && lastName) generateEmail();
+  } else {
+    // Pour /in/ : prénom/nom extrait mais banque à choisir manuellement
+    // Pour /company/ : aucune banque trouvée
+    if (inMatch) {
+      msgs.push('Banque : sélectionne-la manuellement dans la liste');
+      if (msgEl) { msgEl.style.color='var(--accent)'; msgEl.textContent=msgs.join(' · '); }
+    } else if (companyMatch) {
+      if (msgEl) { msgEl.style.color='var(--muted)'; msgEl.textContent='Banque non reconnue — ajoute-la via "+ Ajouter".'; }
+    } else {
+      if (msgEl) { msgEl.style.color='var(--muted)'; msgEl.textContent='URL non reconnue. Format attendu : linkedin.com/in/prenom-nom ou linkedin.com/company/banque'; }
+    }
+    if (firstName && lastName && document.getElementById('bk-bankInput').value) generateEmail();
+  }
+}
+
+function cap(s) { return s ? s.charAt(0).toUpperCase()+s.slice(1) : ''; }
+
+// ── CLEAR FORMS ───────────────────────────────────────────────────
+function clearGenForm() {
+  ['firstName','lastName','company','classeActif','jobRole',
+   'contactCommun','datePremierMail','sujetEchange'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  // Reset dropdowns
+  const dd = document.getElementById('company-dropdown');
+  if (dd) dd.style.display = 'none';
+  window._selectedCompanyBank = null;
+  // Hide output, addStats, mailtoBtn
+  document.getElementById('outputCard')?.classList.remove('visible');
+  const mb = document.getElementById('mailtoBtn');
+  if (mb) mb.style.display = 'none';
+  const sb = document.getElementById('addStatsBtn');
+  if (sb) sb.style.display = 'none';
+}
+
+function clearBankForm() {
+  ['bk-firstName','bk-lastName','bk-bankInput','bk-linkedin-url'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  selectedBank = null;
+  document.getElementById('bk-dropdown').style.display = 'none';
+  document.getElementById('bk-emailResult').style.display = 'none';
+  const msg = document.getElementById('bk-linkedin-msg');
+  if (msg) msg.textContent = '';
+}
+
+// ── RAPPEL PICKER ─────────────────────────────────────────────────
+function toggleRappelPicker() {
+  const panel = document.getElementById('rappelPickerPanel');
+  if (!panel) return;
+  const open = panel.style.display === 'block';
+  panel.style.display = open ? 'none' : 'block';
+}
+
+function setRappelJours(n) {
+  const input = document.getElementById('rappel-jours');
+  if (input) { input.value = n; }
+  onRappelJoursChange();
+}
+
+function onRappelJoursChange() {
+  const n = parseInt(document.getElementById('rappel-jours')?.value || '14', 10);
+  // Update button label
+  const lbl = document.getElementById('rappelPickerLabel');
+  if (lbl) lbl.textContent = n + 'j';
+  // Save to localStorage
+  localStorage.setItem('finapply_rappel_jours', n);
+  renderSuivi();
+}
+
+// Load saved rappel jours on init
+(function loadRappelJours() {
+  const saved = localStorage.getItem('finapply_rappel_jours');
+  if (saved) {
+    const n = parseInt(saved, 10);
+    const input = document.getElementById('rappel-jours');
+    if (input) input.value = n;
+    const lbl = document.getElementById('rappelPickerLabel');
+    if (lbl) lbl.textContent = n + 'j';
+  }
+})();
+
+// ═══════════════════════════════════════════════════════════════
+// NOUVELLES FONCTIONNALITÉS
+// ═══════════════════════════════════════════════════════════════
+
+// ── GENERER RELANCE FROM MODAL ────────────────────────────────────
+function genererRelanceFromModal() {
+  if (!editingCandId) return;
+  const c = candidatures.find(x => x.id === editingCandId);
+  if (!c) return;
+
+  // Pré-remplir le générateur
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+
+  // Prénom / Nom depuis le contact "Prénom Nom"
+  const parts = (c.contact || '').trim().split(' ');
+  setVal('firstName', parts[0] || '');
+  setVal('lastName',  parts.slice(1).join(' ') || '');
+  setVal('company',   c.banque || '');
+
+  // Sélectionner contrat
+  document.querySelectorAll('#contractGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === c.contrat);
+  });
+  state.contract = c.contrat || 'Stage';
+
+  // Sélectionner canal
+  document.querySelectorAll('#canalGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === (c.canal || 'Mail'));
+  });
+  state.canal = c.canal || 'Mail';
+
+  // Basculer sur type "Relance"
+  document.querySelectorAll('#msgTypeGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === 'relance');
+  });
+  state.msgType = 'relance';
+  document.getElementById('approcheSection').style.display = 'none';
+  updateMailExtras();
+
+  // Pré-remplir date du premier mail
+  if (c.date) setVal('datePremierMail', fmtDate(c.date));
+
+  // Mettre à jour le compteur de relances
+  updateRelanceCounter(editingCandId);
+
+  // Fermer modal et aller sur Générateur
+  closeCandModal();
+  const genBtn = document.querySelector('.bnav-btn[onclick*="gen"]') ||
+                 document.querySelectorAll('.bnav-btn')[0];
+  if (genBtn) switchPage('gen', genBtn);
+}
+
+function fmtDate(dateStr) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function formatDateFr(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' });
+}
+
+async function updateRelanceCounter(id) {
+  const idx = candidatures.findIndex(x => x.id === id);
+  if (idx < 0) return;
+  const c = candidatures[idx];
+  c.relanceCount    = (c.relanceCount || 0) + 1;
+  c.lastRelanceDate = new Date().toISOString().split('T')[0];
+  candidatures[idx] = c;
+  await saveCandidatureFirestore(c);
+  renderSuivi();
+}
+
+// ── DUPLIQUER CANDIDATURE ─────────────────────────────────────────
+function dupliquerCandModal() {
+  if (!editingCandId) return;
+  const c = candidatures.find(x => x.id === editingCandId);
+  if (!c) return;
+
+  closeCandModal();
+
+  // Pré-remplir le Générateur avec les infos de la candidature (sans prénom/nom)
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+
+  setVal('company',    c.banque);
+  setVal('firstName',  '');
+  setVal('lastName',   '');
+  setVal('jobRole',    '');
+
+  // Extraire métier et classe d'actif depuis c.poste (ex: "Trader Rates")
+  const posteParts = (c.poste || '').split(' ');
+  const metiers = ['Sales','Trader','Structurer','Quant'];
+  if (posteParts.length >= 1 && metiers.includes(posteParts[0])) {
+    // Sélectionner le métier
+    document.querySelectorAll('#metierGroup .pill').forEach(p => {
+      p.classList.toggle('active', p.dataset.val === posteParts[0]);
+    });
+    state.metier = posteParts[0];
+    setVal('classeActif', posteParts.slice(1).join(' '));
+  } else {
+    setVal('classeActif', c.poste || '');
+  }
+
+  // Sélectionner contrat
+  document.querySelectorAll('#contractGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === c.contrat);
+  });
+  state.contract = c.contrat || 'Stage';
+
+  // Sélectionner canal
+  document.querySelectorAll('#canalGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === (c.canal || 'Mail'));
+  });
+  state.canal = c.canal || 'Mail';
+  updateMailExtras();
+
+  // Basculer sur Candidature
+  document.querySelectorAll('#msgTypeGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === 'candidature');
+  });
+  state.msgType = 'candidature';
+  document.getElementById('approcheSection').style.display = 'block';
+
+  // Naviguer vers Générateur
+  const genBtn = document.querySelector('.bnav-btn');
+  if (genBtn) switchPage('gen', genBtn);
+}
+
+// ── VOICE NOTE ────────────────────────────────────────────────────
+let voiceRecognition = null;
+let isRecording = false;
+
+function startVoiceNote() {
+  const btn   = document.getElementById('voiceBtn');
+  const notes = document.getElementById('cand-notes');
+
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('La dictée vocale n\'est pas disponible sur ce navigateur. Utilise Chrome sur Android ou Safari sur iOS.');
+    return;
+  }
+
+  if (isRecording) {
+    // Stop
+    if (voiceRecognition) voiceRecognition.stop();
+    return;
+  }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  voiceRecognition = new SR();
+  voiceRecognition.lang = 'fr-FR';
+  voiceRecognition.continuous = true;
+  voiceRecognition.interimResults = true;
+
+  const existingText = notes.value;
+
+  voiceRecognition.onstart = () => {
+    isRecording = true;
+    btn.textContent = '⏹ Stop';
+    btn.style.color = 'var(--red)';
+    btn.style.borderColor = 'var(--red)';
+  };
+
+  voiceRecognition.onresult = (e) => {
+    let interim = '';
+    let final   = existingText;
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += (final ? ' ' : '') + e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    notes.value = final + (interim ? ' ' + interim : '');
+  };
+
+  voiceRecognition.onend = () => {
+    isRecording = false;
+    btn.textContent = '🎤 Dicter';
+    btn.style.color = '';
+    btn.style.borderColor = '';
+  };
+
+  voiceRecognition.onerror = (e) => {
+    isRecording = false;
+    btn.textContent = '🎤 Dicter';
+    btn.style.color = '';
+    btn.style.borderColor = '';
+    if (e.error !== 'aborted') alert('Erreur micro : ' + e.error);
+  };
+
+  voiceRecognition.start();
+}
+
+// ── DISPLAY RELANCE COUNTER IN CARD ──────────────────────────────
+// (already handled in renderSuivi card via c.relanceCount)
+
+// ═══════════════════════════════════════════════════════════════
+// RELANCE SEMI-AUTOMATIQUE
+// ═══════════════════════════════════════════════════════════════
+function genererRelanceFromModal() {
+  const id = editingCandId;
+  if (!id) return;
+  const c = candidatures.find(x => x.id === id);
+  if (!c) return;
+
+  // Incrémenter le compteur de relances et sauvegarder
+  c.relanceCount    = (c.relanceCount || 0) + 1;
+  c.lastRelanceDate = new Date().toISOString().split('T')[0];
+  c.statut          = 'Relancé';
+  saveCandidatureFirestore(c);
+
+  // Fermer la modale
+  closeCandModal();
+
+  // Remplir le Générateur avec les infos de la candidature
+  const companyInput = document.getElementById('company');
+  if (companyInput) {
+    companyInput.value = c.banque || '';
+    // Trigger autocomplete selection si la banque existe
+    if (typeof ALL_BANKS !== 'undefined') {
+      const bank = ALL_BANKS.find(b => b.name.toLowerCase() === (c.banque || '').toLowerCase());
+      if (bank) window._selectedCompanyBank = bank;
+    }
+  }
+
+  // Prénom + nom depuis contact (format "Prénom Nom")
+  const parts = (c.contact || '').trim().split(' ');
+  const firstNameEl = document.getElementById('firstName');
+  const lastNameEl  = document.getElementById('lastName');
+  if (firstNameEl) firstNameEl.value = parts[0] || '';
+  if (lastNameEl)  lastNameEl.value  = parts.slice(1).join(' ') || '';
+
+  // Contrat
+  if (state) state.contract = c.contrat || 'Stage';
+  document.querySelectorAll('#contractGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === (c.contrat || 'Stage'));
+  });
+
+  // Canal
+  const canalVal = c.canal || 'Mail';
+  if (state) state.canal = canalVal;
+  document.querySelectorAll('#canalGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === canalVal);
+  });
+
+  // Type de message → Relance
+  const relanceBtn = document.querySelector('#msgTypeGroup .pill[data-val="relance"]');
+  if (relanceBtn) switchMsgType(relanceBtn);
+
+  // Date du premier envoi pour le champ relance
+  const dateMail = document.getElementById('datePremierMail');
+  if (dateMail && c.date) {
+    dateMail.value = c.date;
+  }
+
+  // Basculer sur la page Générateur
+  const genBtn = document.querySelector('.bnav-btn[onclick*="gen"]');
+  if (genBtn) switchPage('gen', genBtn);
+
+  renderSuivi();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DUPLICATION DE CANDIDATURE
+// ═══════════════════════════════════════════════════════════════
+
+
+// ═══════════════════════════════════════════════════════════════
+// DICTÉE VOCALE
+// ═══════════════════════════════════════════════════════════════
+let recognition = null;
+
+function startDictation() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("La dictée vocale n'est pas supportée sur ce navigateur. Utilise Chrome ou Safari sur iOS.");
+    return;
+  }
+
+  const btn = document.getElementById('dictBtn');
+
+  if (recognition) {
+    recognition.stop();
+    recognition = null;
+    if (btn) { btn.textContent = '🎤 Dicter'; btn.style.color = ''; btn.style.borderColor = ''; }
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = 'fr-FR';
+  recognition.continuous = true;
+  recognition.interimResults = false;
+
+  if (btn) { btn.textContent = '⏹ Stop'; btn.style.color = 'var(--red)'; btn.style.borderColor = 'var(--red)'; }
+
+  recognition.onresult = (e) => {
+    const textarea = document.getElementById('cand-notes');
+    if (!textarea) return;
+    let text = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      text += e.results[i][0].transcript;
+    }
+    textarea.value += (textarea.value ? ' ' : '') + text.trim();
+  };
+
+  recognition.onerror = (e) => {
+    console.warn('Speech error:', e.error);
+    if (btn) { btn.textContent = '🎤 Dicter'; btn.style.color = ''; btn.style.borderColor = ''; }
+    recognition = null;
+  };
+
+  recognition.onend = () => {
+    if (btn) { btn.textContent = '🎤 Dicter'; btn.style.color = ''; btn.style.borderColor = ''; }
+    recognition = null;
+  };
+
+  recognition.start();
+}
+
+// ── LINKEDIN RELANCE ──────────────────────────────────────────────
+function buildLinkedinRelance(tv, lang, vars) {
+  const v  = vars;
+  const bj = bonjour(tv, v.prenom, v.nom, v.genre, lang);
+  const sl = salut(tv, lang);
+  const s  = tv ? sigT(lang) : sig(lang);
+
+  if (lang === 'en') {
+    return tv
+      ? `${bj}\n\n${sl}\n\nI am following up on my previous message about a ${v.contrat} opportunity at ${v.banque}.\n\nI remain very motivated and would love to connect if you have a few minutes.\n\n${s}`
+      : `${bj}\n\n${sl}\n\nI am following up on my previous message about a ${v.contrat} opportunity at ${v.banque}.\n\nI remain very motivated and would love to connect at your convenience.\n\n${s}`;
+  }
+  return tv
+    ? `${bj}\n\n${sl}\n\nJe me permets de revenir vers toi suite à mon message précédent concernant ma recherche d'un ${v.contrat} chez ${v.banque}.\n\nJe reste très motivé et serais ravi d'échanger avec toi si tu as quelques minutes.\n\n${s}`
+    : `${bj}\n\n${sl}\n\nJe me permets de revenir vers vous suite à mon message précédent concernant ma recherche d'un ${v.contrat} chez ${v.banque}.\n\nJe reste très motivé et serais ravi d'échanger avec vous si vous avez quelques minutes.\n\n${s}`;
+}
+
+// ── LINKEDIN REMERCIEMENT ─────────────────────────────────────────
+function buildLinkedinRemerciement(tv, lang, vars) {
+  const v  = vars;
+  const bj = bonjour(tv, v.prenom, v.nom, v.genre, lang);
+  const s  = tv ? sigT(lang) : sig(lang);
+
+  if (lang === 'en') {
+    return `${bj}\n\nThank you for taking the time to connect with me. Our exchange was very insightful and I truly appreciated your advice and insights.\n\nI hope we can stay in touch.\n\n${s}`;
+  }
+  return tv
+    ? `${bj}\n\nJe tenais à te remercier pour le temps que tu m'as accordé. Notre échange a été très enrichissant et j'ai beaucoup apprécié tes conseils.\n\nJ'espère que nous garderons contact.\n\n${s}`
+    : `${bj}\n\nJe tenais à vous remercier pour le temps que vous m'avez accordé. Notre échange a été très enrichissant et j'ai beaucoup apprécié vos conseils.\n\nJ'espère que nous garderons contact.\n\n${s}`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ARCHIVE + BADGE + LIEN OFFRE
+// ═══════════════════════════════════════════════════════════════
+
+// ── ARCHIVE ───────────────────────────────────────────────────────
+async function archiveCand(id, e) {
+  e.stopPropagation();
+  const idx = candidatures.findIndex(x => x.id === id);
+  if (idx < 0) return;
+  candidatures[idx].archived = !candidatures[idx].archived;
+  await saveCandidatureFirestore(candidatures[idx]);
+  updateNavBadge();
+  renderSuivi();
+}
+
+// ── BADGE NAV ────────────────────────────────────────────────────
+function updateNavBadge() {
+  const badge = document.getElementById('suivi-badge');
+  if (!badge) return;
+  const count = candidatures.filter(c => !c.archived && isRelanceOverdue(c)).length;
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// ── PATCH renderSuivi to update badge + handle archive filter ─────
+// (filter logic already in renderSuivi — we need to patch setFilter too)
+
+// ═══════════════════════════════════════════════════════════════
+// KANBAN
+// ═══════════════════════════════════════════════════════════════
+
+const KANBAN_COLS = [
+  { id: 'Envoyé',    label: 'Envoyé',    color: 'var(--accent)' },
+  { id: 'Relancé',   label: 'Relancé',   color: 'var(--gold)' },
+  { id: 'Entretien', label: 'Entretien', color: '#a78bfa' },
+  { id: 'Refus',     label: 'Refus',     color: 'var(--red)' },
+  { id: 'Accepté',   label: 'Accepté',   color: 'var(--green)' },
+];
+
+let draggedCandId = null;
+
+function renderKanban() {
+  const board = document.getElementById('kanban-board');
+  if (!board) return;
+
+  const active = candidatures.filter(c => !c.archived);
+
+  board.innerHTML = KANBAN_COLS.map(col => {
+    const cards = active.filter(c => c.statut === col.id);
+    return `
+    <div class="kanban-col" data-col="${col.id}"
+      ondragover="event.preventDefault()"
+      ondrop="dropOnCol('${col.id}', event)"
+      ontouchend="touchDropOnCol('${col.id}', event)"
+      style="flex:0 0 160px;min-width:160px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:${col.color};flex-shrink:0;"></div>
+        <span style="font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;color:${col.color};">${col.label}</span>
+        <span style="font-size:0.7rem;color:var(--muted);margin-left:auto;">${cards.length}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px;min-height:60px;">
+        ${cards.map(c => `
+          <div class="kanban-card"
+            draggable="true"
+            data-id="${c.id}"
+            ondragstart="dragStart('${c.id}')"
+            ontouchstart="touchStart('${c.id}', event)"
+            ontouchmove="touchMove(event)"
+            onclick="openCandModal('${c.id}')"
+            style="background:var(--s2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px;cursor:grab;touch-action:none;user-select:none;">
+            <div style="font-family:'Syne',sans-serif;font-size:0.8rem;font-weight:700;color:var(--text);margin-bottom:3px;">${c.banque}</div>
+            <div style="font-size:0.7rem;color:var(--muted);">${c.poste || ''}</div>
+            ${c.date ? `<div style="font-size:0.65rem;color:var(--muted);margin-top:4px;">${fmtDate(c.date)}</div>` : ''}
+            ${isRelanceOverdue(c) ? `<div style="font-size:0.62rem;color:var(--red);margin-top:2px;">⏰ À relancer</div>` : ''}
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── DRAG & DROP (desktop) ─────────────────────────────────────────
+function dragStart(id) {
+  draggedCandId = id;
+}
+
+async function dropOnCol(statut, event) {
+  event.preventDefault();
+  if (!draggedCandId) return;
+  await updateCandStatut(draggedCandId, statut);
+  draggedCandId = null;
+}
+
+// ── TOUCH DRAG (mobile) ───────────────────────────────────────────
+let touchDragId   = null;
+let touchClone    = null;
+let touchOffX     = 0;
+let touchOffY     = 0;
+
+function touchStart(id, event) {
+  touchDragId = id;
+  const card  = event.currentTarget;
+  const rect  = card.getBoundingClientRect();
+  const touch = event.touches[0];
+
+  // Create visual clone
+  touchClone = card.cloneNode(true);
+  touchClone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.85;z-index:9999;pointer-events:none;border-radius:var(--r-sm);background:var(--s2);border:1px solid var(--accent);transition:none;`;
+  document.body.appendChild(touchClone);
+
+  touchOffX = touch.clientX - rect.left;
+  touchOffY = touch.clientY - rect.top;
+}
+
+function touchMove(event) {
+  if (!touchClone) return;
+  event.preventDefault();
+  const touch = event.touches[0];
+  touchClone.style.left = (touch.clientX - touchOffX) + 'px';
+  touchClone.style.top  = (touch.clientY - touchOffY) + 'px';
+}
+
+function touchDropOnCol(statut, event) {
+  if (!touchDragId) return;
+  if (touchClone) { document.body.removeChild(touchClone); touchClone = null; }
+  updateCandStatut(touchDragId, statut);
+  touchDragId = null;
+}
+
+async function updateCandStatut(id, statut) {
+  const idx = candidatures.findIndex(c => c.id === id);
+  if (idx < 0 || candidatures[idx].statut === statut) return;
+  candidatures[idx].statut = statut;
+  await saveCandidatureFirestore(candidatures[idx]);
+  renderKanban();
+  renderSuivi(); // keep list in sync
+}
+
+// ── PWA SERVICE WORKER REGISTRATION ──────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

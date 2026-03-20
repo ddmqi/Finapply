@@ -1,0 +1,22 @@
+{
+  "name": "FinApply",
+  "short_name": "FinApply",
+  "description": "Générateur de messages candidature finance de marché",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07080d",
+  "theme_color": "#07080d",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%2307080d'/><text y='135' x='96' text-anchor='middle' font-size='110' font-family='sans-serif' fill='%234f8eff'>F</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%2307080d'/><text y='365' x='256' text-anchor='middle' font-size='300' font-family='sans-serif' fill='%234f8eff'>F</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
