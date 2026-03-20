@@ -7,9 +7,10 @@
 <!-- PWA -->
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="FinApply">
-<meta name="theme-color" content="#07080d">
+<meta name="theme-color" content="#07080d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" id="meta-theme-color" content="#07080d">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2307080d'/><text y='68' x='50' text-anchor='middle' font-size='55' font-family='sans-serif' fill='%234f8eff'>F</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,6 +36,31 @@
   --r: 14px;
   --r-sm: 9px;
 }
+html[data-theme="light"] {
+  --bg:        #f4f5f7;
+  --s1:        #ffffff;
+  --s2:        #f8f9fb;
+  --s3:        #eef0f4;
+  --border:    #d8dce6;
+  --border2:   #c8ccd8;
+  --text:      #111827;
+  --sub:       #374151;
+  --muted:     #6b7280;
+  --accent:    #2563eb;
+  --accent-dim:rgba(37,99,235,0.1);
+  --green:     #16a34a;
+  --green-dim: rgba(22,163,74,0.1);
+  --gold:      #b45309;
+  --gold-dim:  rgba(180,83,9,0.1);
+  --red:       #dc2626;
+}
+
+html[data-theme="light"] header,
+html[data-theme="light"] .bnav {
+  background: var(--bg);
+  border-color: var(--border);
+}
+
 
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
@@ -60,7 +86,7 @@ body {
 header {
   padding: 16px 18px 14px;
   border-bottom: 1px solid var(--border);
-  background: rgba(7,8,13,0.95);
+  background: var(--bg);
   backdrop-filter: blur(10px);
   position: sticky; top: 0; z-index: 50;
   display: flex; align-items: center; justify-content: space-between;
@@ -97,7 +123,7 @@ main {
   position: fixed;
   bottom: 0; left: 50%; transform: translateX(-50%);
   width: 100%; max-width: 480px;
-  background: rgba(11,12,20,0.97);
+  background: var(--bg);
   backdrop-filter: blur(14px);
   border-top: 1px solid var(--border);
   display: flex;
@@ -349,8 +375,14 @@ hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
 <body>
 
 <header>
-  <div class="brand">Fin<em>Apply</em></div>
-  <div class="page-label" id="headerLabel">Générateur</div>
+  <div class="brand" onclick="switchPage('gen', document.querySelector('.bnav-btn'))" style="cursor:pointer;">Fin<em>Apply</em></div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button id="themeToggle" onclick="toggleTheme()" title="Mode clair / sombre"
+      style="background:none;border:1px solid var(--border2);border-radius:20px;padding:4px 10px;color:var(--sub);font-size:0.75rem;cursor:pointer;font-family:'DM Sans',sans-serif;line-height:1;">
+      ☀️
+    </button>
+    <div class="page-label" id="headerLabel">Générateur</div>
+  </div>
 </header>
 
 <main id="mainScroll">
@@ -427,8 +459,20 @@ hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
 
     <!-- CLASSE D'ACTIF -->
     <div class="field-wrap">
-      <label class="field-label">Classe d'actif (texte libre)</label>
-      <input type="text" id="classeActif" placeholder="ex : Rates, Crédit, Equity Dérivés, Cross Asset…" autocomplete="off">
+      <label class="field-label">Classe d'actif</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;" id="actifPills">
+        <div class="pill" data-actif="Rates" onclick="selectActif(this)">Rates</div>
+        <div class="pill" data-actif="Crédit" onclick="selectActif(this)">Crédit</div>
+        <div class="pill" data-actif="Cross Asset" onclick="selectActif(this)">Cross Asset</div>
+        <div class="pill" data-actif="Equity" onclick="selectActif(this)">Equity</div>
+        <div class="pill" data-actif="FX" onclick="selectActif(this)">FX</div>
+        <div class="pill" data-actif="EQD" onclick="selectActif(this)">EQD</div>
+        <div class="pill" data-actif-en="Structured Products" data-actif="Produits Structurés" onclick="selectActif(this)">Produits Structurés</div>
+        <div class="pill" data-actif="Repo" onclick="selectActif(this)">Repo</div>
+        <div class="pill" data-actif="Delta One" onclick="selectActif(this)">Delta One</div>
+        <div class="pill" data-actif="Equity Financing" onclick="selectActif(this)">Equity Financing</div>
+      </div>
+      <input type="text" id="classeActif" placeholder="ou saisir librement…" autocomplete="off" oninput="syncActifPills()">
     </div>
     </div>
 
@@ -827,9 +871,9 @@ hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
     <div id="suivi-list"></div>
 
     <!-- MODALE CANDIDATURE -->
-    <div id="cand-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:400;align-items:flex-end;justify-content:center;">
-      <div style="background:var(--s2);border-radius:var(--r) var(--r) 0 0;padding:22px 18px 32px;width:100%;max-width:480px;border-top:1px solid var(--border2);max-height:90vh;overflow-y:auto;">
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:16px;" id="cand-modal-title">Ajouter une candidature</div>
+    <div id="cand-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:400;align-items:center;justify-content:center;overflow:hidden;padding:16px;">
+      <div style="background:var(--s2);border-radius:var(--r);padding:0;width:100%;max-width:480px;border:1px solid var(--border2);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div style="padding:18px 18px 0;flex-shrink:0;"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:16px;" id="cand-modal-title">Ajouter une candidature</div></div><div style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 18px;flex:1;">
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <div class="field-wrap" style="margin-bottom:0;">
@@ -906,11 +950,14 @@ hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
         <!-- Compteur relances -->
         <div id="cand-relances-info" style="display:none;background:var(--s3);border-radius:var(--r-sm);padding:10px 13px;margin-top:8px;font-size:0.78rem;color:var(--sub);"></div>
 
-        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-          <button onclick="closeCandModal()" style="flex:1;min-width:80px;padding:13px;background:var(--s3);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--sub);font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;">Annuler</button>
-          <button onclick="dupliquerCandModal()" id="dupBtn" style="display:none;padding:13px 14px;background:var(--s2);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--sub);font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">⧉ Dupliquer</button>
-          <button onclick="genererRelanceFromModal()" id="relanceBtn" style="display:none;padding:13px 14px;background:var(--gold-dim);border:1px solid var(--gold);border-radius:var(--r-sm);color:var(--gold);font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">⏰ Relancer</button>
-          <button onclick="saveCandModal()" style="flex:2;min-width:120px;padding:13px;background:var(--accent);border:none;border-radius:var(--r-sm);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;cursor:pointer;">Sauvegarder</button>
+        </div><!-- /scroll body -->
+        <div style="padding:12px 18px 18px;border-top:1px solid var(--border);flex-shrink:0;background:var(--s2);">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="closeCandModal()" style="flex:1;min-width:80px;padding:13px;background:var(--s3);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--sub);font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;">Annuler</button>
+            <button onclick="dupliquerCandModal()" id="dupBtn" style="display:none;padding:13px 14px;background:var(--s2);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--sub);font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">⧉ Dupliquer</button>
+            <button onclick="genererRelanceFromModal()" id="relanceBtn" style="display:none;padding:13px 14px;background:var(--gold-dim);border:1px solid var(--gold);border-radius:var(--r-sm);color:var(--gold);font-family:'DM Sans',sans-serif;font-size:0.82rem;cursor:pointer;">⏰ Relancer</button>
+            <button onclick="saveCandModal()" style="flex:2;min-width:120px;padding:13px;background:var(--accent);border:none;border-radius:var(--r-sm);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;cursor:pointer;">Sauvegarder</button>
+          </div>
         </div>
       </div>
     </div>
@@ -967,9 +1014,20 @@ hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
 // ─ Classe d'actif : texte libre injecté dans {{actif}}
 // ═══════════════════════════════════════════════════════════════
 
-const JUNIOR_CONTRACTS = ['Stage', 'VIE'];
+const JUNIOR_CONTRACTS = ['Stage'];
 function isJunior(c) { return JUNIOR_CONTRACTS.includes(c); }
-function isCDI(c)    { return c === 'CDI'; }
+function isCDI(c)    { return ['CDI','VIE','CDD'].includes(c); }
+
+function trContrat(c, lang) {
+  if (lang !== 'en') return c;
+  const map = {
+    'Stage':   'Internship',
+    'VIE':     'VIE (International Internship)',
+    'CDD':     'Fixed-Term Contract',
+    'CDI':     'Full-Time Position',
+  };
+  return map[c] || c;
+}
 
 // ── ACCROCHE MÉTIER ──────────────────────────────────────────────
 // Retourne un bloc de 1-2 phrases mettant en avant les bonnes compétences
@@ -984,15 +1042,15 @@ function accrocheProfil(metier, actif, genre, tutoie, lang) {
     const actifStr = actif ? ` in ${actif}` : '';
     switch(metier) {
       case 'Sales':
-        return `My profile combines solid technical expertise in Structured Product Pricing${actifStr} with direct commercial experience, gained during my internship in Cross Asset Structured Products Sales at Société Générale CIB. I also build Pricing Tools used by Sales Teams on a daily basis. I believe this dual perspective — technical and client-facing — is what genuinely sets me apart.`;
+        return `My profile combines solid technical expertise in Structured Products Pricing with direct client-facing experience, gained during my internship in Cross Asset Structured Products Sales at Société Générale CIB. I have also built Pricing tools used daily by the Sales Teams. I believe this combination, technical depth and commercial awareness, is what genuinely sets me apart.`;
       case 'Trader':
-        return `My day-to-day work at CA-CIB revolves around Pricing${actifStr} derivatives, Monitoring Risk Positions and building Python and VBA automation tools, including pricers I built directly for the Sales Teams. I have a rigorous quantitative approach and a strong understanding of how structuring and trading interact on a Live Book.`;
+        return `My day-to-day work at CA-CIB revolves around Structured Products Pricing, building Python and VBA automation tools, and developing pricers for the Sales Teams. This dual expertise in Pricing and Automation means I can hit the ground running and contribute directly to the team's activity.`;
       case 'Structurer':
-        return `Structuring${actifStr} products is exactly what I do every day at CA-CIB — Pricing, designing Client Solutions, Interaction with Trading and Middle Office. I have also built a significant part of my own tooling in Python and VBA, including automated pricers for the Sales Teams, which lets me focus on higher-value work.`;
+        return `Structuring is at the core of what I do at CA-CIB, Pricing, client solutions, and constant interaction with Trading and the Quants. I have also automated a significant part of the Pricing workflows in Python and VBA, including Pricers now used in production by the Sales Teams.`;
       case 'Quant':
-        return `My quantitative background — double degree in Quantitative Finance, Python and VBA at an advanced level, stochastic calculus and Monte Carlo methods — combined with daily hands-on experience in Structured Product Pricing${actifStr} and tool development, makes me confident I could contribute meaningfully to your team.`;
+        return `My Quantitative background, combined with hands-on experience in Structured Products Pricing and tool development, gives me confidence that I could contribute meaningfully to your team.`;
       default:
-        return `My background in derivatives Pricing${actifStr} and structured products, combined with strong Python and VBA skills and experience building Pricing Tools for Sales Teams, makes me genuinely interested in the work your team does.`;
+        return `My experience in Structured Products Pricing, combined with strong Python and VBA skills and a track record of building tools used by Sales Teams, makes me genuinely interested in contributing to your team's work.`;
     }
   }
 
@@ -1005,9 +1063,9 @@ function accrocheProfil(metier, actif, genre, tutoie, lang) {
     case 'Trader':
       return `Mon quotidien chez CA-CIB est centré sur le Pricing de Produits Structurés, la construction d'outils d'automatisation en Python et VBA, et la création de pricers pour les Équipes de Sales. Cette double compétence en Pricing et Automatisation, me permet d'être rapidement opérationnel et de contribuer concrètement à l'activité de l'équipe.`;
     case 'Structurer':
-      return `La structuration de produits${actifStr} est précisément ce que je fais au quotidien chez CA-CIB — Pricing, Solutions Clients, Interaction avec le Trading et le Middle Office. J'ai également construit une grande partie de mes outils en Python et VBA, dont des pricers automatisés pour les Équipes de Sales, ce qui me permet de me concentrer sur les tâches à plus forte valeur ajoutée.`;
+      return `La Structuration est précisément ce que je fais au quotidien chez CA-CIB, Pricing, Solutions Clients, Interaction avec le Trading et les Quants. J'ai également automatisé une grande partie des workflows de Pricing en Python et VBA, incluant des Pricers utilisés en production par les Équipes de Sales.`;
     case 'Quant':
-      return `Mon bagage quantitatif — double diplôme en Finance Quantitative, Python et VBA niveau avancé, calcul stochastique et simulations Monte Carlo — combiné à une expérience terrain quotidienne en Pricing de Produits Structurés et en développement d'outils, me convainc que je pourrais apporter une contribution réelle à ${tv ? 'ton' : 'votre'} équipe.`;
+      return `Mon Bagage Quantitatif, combiné à une expérience terrain quotidienne en Pricing de Produits Structurés et en développement d'outils, me convainc que je pourrais apporter une contribution réelle à ${tv ? 'ton' : 'votre'} équipe.`;
     default:
       return `Mon expérience en Pricing de Produits Structurés et la construction d'outils d'automatisation en Python et VBA, dont des pricers pour les Équipes de Sales, me donnent envie de contribuer au travail de ${tv ? 'ton' : 'votre'} équipe.`;
   }
@@ -1017,11 +1075,8 @@ function accrocheProfil(metier, actif, genre, tutoie, lang) {
 // Tout est écrit deux fois : vouvoiement (V) et tutoiement (T)
 
 function introJunior(tv, lang) {
-  if (lang === 'en') return "I am currently on an apprenticeship as Non Linear Rates, Credit & Hybrid Structurer at CA-CIB and also pursuing a double degree in Quantitative Finance at Paris II Assas";
-  return tv
-    ? "Actuellement en alternance en tant que Non Linear Rates, Credit & Hybrid Structuring chez CA-CIB et en double diplôme en Finance Quantitative à Paris II Assas"
-    : "Actuellement en alternance en tant que Non Linear Rates, Credit & Hybrid Structuring chez CA-CIB et en double diplôme en Finance Quantitative à Paris II Assas";
-  // même phrase — mais les constructions AUTOUR changeront (tu/vous)
+  if (lang === 'en') return "Currently on an apprenticeship in Non Linear Rates, Credit & Hybrid Structuring at CA-CIB, as part of my double degree in Quantitative Finance at Paris II Assas";
+  return "Actuellement en Alternance en tant que Non Linear Rates, Credit & Hybrid Structuring chez CA-CIB, dans le cadre de mon double diplôme en Finance Quantitative à Paris II Assas";
 }
 
 function introSenior(tv, lang) {
@@ -1030,8 +1085,8 @@ function introSenior(tv, lang) {
 }
 
 function introCDI(tv, lang) {
-  if (lang === 'en') return "I am currently on an apprenticeship as Non Linear Rates, Credit & Hybrid Structurer at CA-CIB and also pursuing a double degree in Quantitative Finance at Paris II Assas";
-  return "Actuellement en alternance en tant que Non Linear Rates, Credit & Hybrid Structuring chez CA-CIB et en double diplôme en Finance Quantitative à Paris II Assas";
+  if (lang === 'en') return "Currently on an apprenticeship in Non Linear Rates, Credit & Hybrid Structuring at CA-CIB, as part of my double degree in Quantitative Finance at Paris II Assas";
+  return "Actuellement en Alternance en tant que Non Linear Rates, Credit & Hybrid Structuring chez CA-CIB, dans le cadre de mon double diplôme en Finance Quantitative à Paris II Assas";
 }
 
 function salut(tv, lang) {
@@ -1100,24 +1155,24 @@ function buildMailCandidature(lang, contract, approach, tv, genre, metier, actif
     const intro = introCDI(tv, lang);
     const ouv   = ouvert(genre);
     const subjectMap = {
-      direct:    enLang ? `Spontaneous application CDI — ${v.titre} — David Maquoi` : `Candidature spontanée CDI — ${v.titre} — David Maquoi`,
-      networking:enLang ? `Spontaneous application CDI — ${v.titre} — David Maquoi — ref. ${v.contact}` : `Candidature spontanée CDI — ${v.titre} — David Maquoi — ref. ${v.contact}`,
-      expertise: enLang ? `Spontaneous application CDI — ${v.titre} — David Maquoi` : `Candidature spontanée CDI — ${v.titre} — David Maquoi`,
-      accroche:  enLang ? `Spontaneous application CDI — ${v.titre} — David Maquoi` : `Candidature spontanée CDI — ${v.titre} — David Maquoi`,
+      direct:    enLang ? `Spontaneous application CDI, ${v.titre}, David Maquoi` : `Candidature spontanée CDI, ${v.titre}, David Maquoi`,
+      networking:enLang ? `Spontaneous application CDI, ${v.titre}, David Maquoi, ref. ${v.contact}` : `Candidature spontanée CDI, ${v.titre}, David Maquoi, ref. ${v.contact}`,
+      expertise: enLang ? `Spontaneous application CDI, ${v.titre}, David Maquoi` : `Candidature spontanée CDI, ${v.titre}, David Maquoi`,
+      accroche:  enLang ? `Spontaneous application CDI, ${v.titre}, David Maquoi` : `Candidature spontanée CDI, ${v.titre}, David Maquoi`,
     };
     const textMap = {
       direct: enLang
         ? `${bj}\n\n${sl}\n\n${intro}. I am reaching out to enquire about a potential opportunity within your team at ${v.banque}.\n\n${ap}\n\nI am well aware that opportunities do not always arise at the right time, but I believe a 20-minute conversation would be enough to show you whether my profile could be relevant for your team.\n\nWould you be ${ouv} to a brief call at your convenience?\n\n${enLang ? pj(lang) : pj(lang)}\n\n${s}`
-        : `${bj}\n\n${sl}\n\n${intro}, je me permets de ${te(tv)} contacter au sujet d'une éventuelle opportunité au sein de ${ton(tv)} équipe chez ${v.banque}.\n\n${ap}\n\nJe suis bien conscient que les opportunités ne se présentent pas toujours au bon moment, mais je pense qu'un échange de 20 minutes suffirait à ${te(tv)} montrer si mon profil pourrait être pertinent pour ${ton(tv)} équipe.\n\nSerais-${tv ? 'tu' : 'vous'} ${ouv} à un appel ou un café à ${ton(tv)} convenance ?\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
+        : `${bj}\n\n${sl}\n\n${intro}, je me permets de ${te(tv)} contacter au sujet d'une éventuelle opportunité au sein de ${ton(tv)} équipe chez ${v.banque}.\n\n${ap}\n\nJe suis bien conscient que les opportunités ne se présentent pas toujours au bon moment, mais je pense qu'un échange de 10 minutes suffirait à ${te(tv)} montrer si mon profil pourrait être pertinent pour ${ton(tv)} équipe.\n\nSerais-${tv ? 'tu' : 'vous'} ${ouv} à un appel ou un café à ${ton(tv)} convenance ?\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
       networking: enLang
         ? `${bj}\n\n${sl}\n\n${v.contact} encouraged me to reach out directly, and having followed your career at ${v.banque}, I understand why.\n\n${intro}. I am writing because I would genuinely like to join a team like yours, and ${v.contact} thought our profiles could be a good match.\n\n${ap}\n\nWould you be ${ouv} to a 20-minute call?\n\n${pj(lang)}\n\n${s}`
         : `${bj}\n\n${sl}\n\n${v.contact} m'a encouragé à ${te(tv)} contacter directement, et après avoir suivi ${ton(tv)} parcours chez ${v.banque}, je comprends pourquoi.\n\n${intro}. Je ${te(tv)} contacte avec la sincère envie de rejoindre une équipe comme la ${tv ? 'tienne' : 'vôtre'}, et ${v.contact} pense que nos profils pourraient bien se compléter.\n\n${ap}\n\nSerais-${tv ? 'tu' : 'vous'} ${ouv} à un appel ou un café ?\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
       expertise: enLang
-        ? `${bj}\n\n${sl}\n\n${intro}. Your role as ${v.titre} at ${v.banque} is exactly the type of position I am working towards, and I wanted to reach out directly rather than apply through the standard channels.\n\n${ap}\n\nI would genuinely value a conversation with you — even a short one.\n\nWould you be open to a call or a coffee at your convenience?\n\n${pj(lang)}\n\n${s}`
+        ? `${bj}\n\n${sl}\n\n${intro}. Your role as ${v.titre} at ${v.banque} is exactly the type of position I am working towards, and I wanted to reach out directly rather than apply through the standard channels.\n\n${ap}\n\nI would genuinely value a conversation with you, even a short one.\n\nWould you be open to a call or a coffee at your convenience?\n\n${pj(lang)}\n\n${s}`
         : `${bj}\n\n${sl}\n\n${intro}. ${tonC(tv)} poste de ${v.titre} chez ${v.banque} correspond exactement au type de rôle vers lequel je souhaite m'orienter, et j'ai préféré ${te(tv)} contacter directement plutôt que de passer par les voies classiques.\n\n${ap}\n\nUn échange avec ${tv ? 'toi' : 'vous'}, même court, aurait beaucoup de valeur pour moi.\n\nSerais-${tv ? 'tu' : 'vous'} ${ouv} à un appel ou un café ?\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
       accroche: enLang
-        ? `${bj}\n\n${sl}\n\nThe current market environment — active rates, credit repricing, growing structured product flows — made me think carefully about which teams I would most like to join. That reflection led me to your profile at ${v.banque}.\n\n${intro}. ${ap}\n\nI am not looking to be pushy, but I do think a 20-minute conversation could be genuinely interesting for both of us.\n\nWould you be ${ouv} to a brief call?\n\n${pj(lang)}\n\n${s}`
-        : `${bj}\n\n${sl}\n\nLe contexte de marché actuel — Volatilité des Taux, repricing du Risque Crédit, flux croissants sur les Produits Structurés — m'a amené à réfléchir sérieusement aux équipes que je voudrais rejoindre. Cette réflexion m'a conduit à ${ton(tv)} profil chez ${v.banque}.\n\n${intro}. ${ap}\n\nJe ne cherche pas à être insistant${v.genre==='F'?'e':''}, mais je pense sincèrement qu'un échange de 20 minutes pourrait être intéressant pour nous deux.\n\nSerais-${tv ? 'tu' : 'vous'} ${ouv} à un appel ou un café ?\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
+        ? `${bj}\n\n${sl}\n\nThe current market environment, active rates, credit repricing, growing structured product flows, made me think carefully about which teams I would most like to join. That reflection led me to your profile at ${v.banque}.\n\n${intro}. ${ap}\n\nI am not looking to be pushy, but I do think a 20-minute conversation could be genuinely interesting for both of us.\n\nWould you be ${ouv} to a brief call?\n\n${pj(lang)}\n\n${s}`
+        : `${bj}\n\n${sl}\n\n${mktAccroche(actif, tv, v)}\n\n${intro}. ${ap}\n\nJe ne cherche pas à être insistant${v.genre==='F'?'e':''}, mais je pense sincèrement qu'un échange de 10 minutes pourrait être intéressant pour nous deux.\n\nSerais-${tv ? 'tu' : 'vous'} ${ouv} à un appel ou un café ?\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
     };
     return { subject: subjectMap[approach] || subjectMap.direct, text: textMap[approach] || textMap.direct };
   }
@@ -1125,24 +1180,24 @@ function buildMailCandidature(lang, contract, approach, tv, genre, metier, actif
   // ── STAGE / VIE / CDD ─────────────────────────────────────────
   const intro = junior ? introJunior(tv, lang) : introSenior(tv, lang);
   const subjectMap = {
-    direct:    enLang ? `Application ${v.contrat} — ${v.titre} — David Maquoi` : `Candidature ${v.contrat} — ${v.titre} — David Maquoi`,
-    networking:enLang ? `Application ${v.contrat} — ${v.titre} — David Maquoi — ref. ${v.contact}` : `Candidature ${v.contrat} — ${v.titre} — David Maquoi — ref. ${v.contact}`,
-    expertise: enLang ? `Application ${v.contrat} — ${v.titre} — David Maquoi` : `Candidature ${v.contrat} — ${v.titre} — David Maquoi`,
-    accroche:  enLang ? `Application ${v.contrat} — ${v.titre} — David Maquoi` : `Candidature ${v.contrat} — ${v.titre} — David Maquoi`,
+    direct:    enLang ? `Application ${trContrat(v.contrat, lang)}, ${v.titre}, David Maquoi` : `Candidature ${trContrat(v.contrat, lang)}, ${v.titre}, David Maquoi`,
+    networking:enLang ? `Application ${trContrat(v.contrat, lang)}, ${v.titre}, David Maquoi, ref. ${v.contact}` : `Candidature ${trContrat(v.contrat, lang)}, ${v.titre}, David Maquoi, ref. ${v.contact}`,
+    expertise: enLang ? `Application ${trContrat(v.contrat, lang)}, ${v.titre}, David Maquoi` : `Candidature ${trContrat(v.contrat, lang)}, ${v.titre}, David Maquoi`,
+    accroche:  enLang ? `Application ${trContrat(v.contrat, lang)}, ${v.titre}, David Maquoi` : `Candidature ${trContrat(v.contrat, lang)}, ${v.titre}, David Maquoi`,
   };
   const textMap = {
     direct: enLang
-      ? `${bj}\n\n${sl}\n\n${intro}. I am reaching out because your role as ${v.titre} at ${v.banque} is exactly the kind of environment I want to develop in.\n\n${ap}\n\nI am seeking a ${v.contrat} and would love to connect about opportunities within your team.\n\n${pj(lang)}\n\n${s}`
-      : `${bj}\n\n${sl}\n\n${intro}, je me permets de ${te(tv)} contacter car ${ton(tv)} poste de ${v.titre} chez ${v.banque} correspond exactement à l'environnement dans lequel je souhaite évoluer.\n\n${ap}\n\nJe suis à la recherche d'un ${v.contrat} et serais ravi de pouvoir échanger avec ${tv ? 'toi' : 'vous'} sur les opportunités au sein de ${ton(tv)} équipe.\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
+      ? `${bj}\n\n${sl}\n\n${intro}.\n\nYour role as ${v.titre} at ${v.banque} is exactly the kind of environment I am looking to develop in, which is why I wanted to reach out directly.\n\n${ap}\n\nI am actively seeking a ${trContrat(v.contrat, lang)} and would love to connect about any opportunity within your team.\n\n${pj(lang)}\n\n${s}`
+      : `${bj}\n\n${sl}\n\n${intro}, je me permets de ${te(tv)} contacter car ${ton(tv)} poste de ${v.titre} chez ${v.banque} correspond exactement à l'environnement dans lequel je souhaite évoluer.\n\n${ap}\n\nJe suis à la recherche d'un ${trContrat(v.contrat, lang)} et serais ravi de pouvoir échanger avec ${tv ? 'toi' : 'vous'} sur les opportunités au sein de ${ton(tv)} équipe.\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
     networking: enLang
-      ? `${bj}\n\n${sl}\n\nFollowing a conversation with ${v.contact}, who described your desk and encouraged me to reach out directly, I wanted to introduce myself.\n\n${intro}. ${ap}\n\nI am looking for a ${v.contrat} and your team at ${v.banque} stands out as an ideal opportunity.\n\n${pj(lang)}\n\n${dispoConv(tv, lang)}\n\n${s}`
-      : `${bj}\n\n${sl}\n\nSuite à un échange avec ${v.contact}, qui m'a décrit les missions de ${ton(tv)} desk et m'a encouragé à ${te(tv)} contacter directement, je me permets de ${te(tv)} écrire.\n\n${intro}. ${ap}\n\nJe suis à la recherche d'un ${v.contrat} et ${ton(tv)} équipe chez ${v.banque} représente pour moi une opportunité idéale.\n\n${tv ? pjT(lang) : pj(lang)}\n\n${dispoConv(tv, lang)}\n\n${s}`,
+      ? `${bj}\n\n${sl}\n\n${v.contact} spoke highly of your desk at ${v.banque} and encouraged me to reach out directly.\n\n${intro}.\n\n${ap}\n\nI am actively looking for a ${trContrat(v.contrat, lang)} and believe your team would be an ideal fit. I remain available at your convenience.\n\n${pj(lang)}\n\n${s}`
+      : `${bj}\n\n${sl}\n\nSuite à un échange avec ${v.contact}, qui m'a décrit les missions de ${ton(tv)} desk et m'a encouragé à ${te(tv)} contacter directement, je me permets de ${te(tv)} écrire.\n\n${intro}. ${ap}\n\nJe suis à la recherche d'un ${trContrat(v.contrat, lang)} et ${ton(tv)} équipe chez ${v.banque} représente pour moi une opportunité idéale.\n\n${tv ? pjT(lang) : pj(lang)}\n\n${dispoConv(tv, lang)}\n\n${s}`,
     expertise: enLang
-      ? `${bj}\n\n${sl}\n\n${intro}. As ${v.titre} at ${v.banque}, you work at the core of what I do every day.\n\n${ap}\n\nI am looking for a ${v.contrat} and would be happy to connect at your convenience.\n\n${pj(lang)}\n\n${s}`
-      : `${bj}\n\n${sl}\n\n${intro}. En tant que ${v.titre} chez ${v.banque}, ${tv ? 'tu es' : 'vous êtes'} au cœur du domaine sur lequel je travaille au quotidien.\n\n${ap}\n\nJe suis à la recherche d'un ${v.contrat} et serais heureux d'échanger avec ${tv ? 'toi' : 'vous'} à ${ton(tv)} convenance.\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
+      ? `${bj}\n\n${sl}\n\n${intro}.\n\nAs ${v.titre} at ${v.banque}, you work at the heart of what I do every day, which is exactly why I wanted to reach out directly rather than through the standard channels.\n\n${ap}\n\nI am looking for a ${trContrat(v.contrat, lang)} and would be glad to connect at your convenience.\n\n${pj(lang)}\n\n${s}`
+      : `${bj}\n\n${sl}\n\n${intro}. En tant que ${v.titre} chez ${v.banque}, ${tv ? 'tu es' : 'vous êtes'} au cœur du domaine sur lequel je travaille au quotidien.\n\n${ap}\n\nJe suis à la recherche d'un ${trContrat(v.contrat, lang)} et serais heureux d'échanger avec ${tv ? 'toi' : 'vous'} à ${ton(tv)} convenance.\n\n${tv ? pjT(lang) : pj(lang)}\n\n${s}`,
     accroche: enLang
-      ? `${bj}\n\n${sl}\n\nThe current market environment, particularly active on rates and volatility, makes the role of ${v.titre} at ${v.banque} more strategic than ever. That is what motivated me to reach out.\n\n${intro}. ${ap}\n\nI am looking for a ${v.contrat}.\n\n${pj(lang)}\n\n${dispoConv(tv, lang)}\n\n${s}`
-      : `${bj}\n\n${sl}\n\nLe contexte de marché actuel, particulièrement actif sur les Taux et la Volatilité, rend le rôle de ${v.titre} chez ${v.banque} plus stratégique que jamais. C'est ce qui m'a motivé à ${te(tv)} contacter.\n\n${intro}. ${ap}\n\nJe suis à la recherche d'un ${v.contrat}.\n\n${tv ? pjT(lang) : pj(lang)}\n\n${dispoConv(tv, lang)}\n\n${s}`,
+      ? `${bj}\n\n${sl}\n\nThe current environment, active rates, credit repricing, growing structured product flows, made me think carefully about which desks I would most want to join. Your profile at ${v.banque} stood out immediately.\n\n${intro}.\n\n${ap}\n\nI am actively looking for a ${trContrat(v.contrat, lang)}. I remain available at your convenience.\n\n${pj(lang)}\n\n${s}`
+      : `${bj}\n\n${sl}\n\n${mktAccrocheJunior(actif, tv, v)}\n\n${intro}. ${ap}\n\nJe suis à la recherche d'un ${trContrat(v.contrat, lang)}.\n\n${tv ? pjT(lang) : pj(lang)}\n\n${dispoConv(tv, lang)}\n\n${s}`,
   };
   return { subject: subjectMap[approach] || subjectMap.direct, text: textMap[approach] || textMap.direct };
 }
@@ -1161,22 +1216,22 @@ function buildMailRelance(lang, contract, tv, vars) {
   const cdi    = isCDI(contract);
 
   const subject = enLang
-    ? `Follow-up — ${cdi ? 'Prise de contact' : 'Application ' + v.contrat} — David Maquoi`
-    : `Relance — ${cdi ? 'Candidature spontanée' : 'Candidature ' + v.contrat} — David Maquoi`;
+    ? `Follow-up, ${cdi ? 'Prise de contact' : 'Application ' + v.contrat}, David Maquoi`
+    : `Relance, ${cdi ? 'Candidature spontanée' : 'Candidature ' + v.contrat}, David Maquoi`;
 
   let text;
   if (enLang) {
     text = cdi
       ? `${bj}\n\nI hope you are doing well.\n\nI am following up on my message from ${v.datePremierMail}. I understand you are very busy and I do not want to be a bother. I genuinely believe my profile could be of interest to your team at ${v.banque}, whether now or further down the line.\n\nI remain available at your convenience.\n\n${s}`
-      : `${bj}\n\nI hope you are doing well.\n\nI am following up on my email from ${v.datePremierMail} regarding a ${v.contrat} opportunity ${junior ? 'within your team ' : ''}at ${v.banque}. I understand you are very busy and would not want my message to have been missed.\n\nI remain available at your convenience.\n\n${s}`;
+      : `${bj}\n\nI hope you are doing well.\n\nI am following up on my email from ${v.datePremierMail} regarding a ${trContrat(v.contrat, lang)} opportunity ${junior ? 'within your team ' : ''}at ${v.banque}. I understand you are very busy and would not want my message to have been missed.\n\nI remain available at your convenience.\n\n${s}`;
   } else if (tv) {
     text = cdi
       ? `${bj}\n\n${sl}\n\nJe me permets de te relancer suite à mon message du ${v.datePremierMail}. Je sais que ton agenda est chargé et je ne voudrais surtout pas être lourd${v.genre==='F'?'e':''}. Je reste sincèrement convaincu que mon profil pourrait intéresser ton équipe chez ${v.banque}, que ce soit maintenant ou plus tard.\n\nJe reste disponible à ta convenance.\n\n${s}`
-      : `${bj}\n\n${sl}\n\nJe me permets de te relancer suite à mon mail du ${v.datePremierMail} concernant ma candidature à un ${v.contrat} chez ${v.banque}. Je sais que tu es très sollicité${v.genre==='F'?'e':''} et je ne voudrais pas que mon message soit passé inaperçu.\n\nJe reste disponible à ta convenance.\n\n${s}`;
+      : `${bj}\n\n${sl}\n\nJe me permets de te relancer suite à mon mail du ${v.datePremierMail} concernant ma candidature à un ${trContrat(v.contrat, lang)} chez ${v.banque}. Je sais que tu es très sollicité${v.genre==='F'?'e':''} et je ne voudrais pas que mon message soit passé inaperçu.\n\nJe reste disponible à ta convenance.\n\n${s}`;
   } else {
     text = cdi
       ? `${bj}\n\n${sl}\n\nJe me permets de vous relancer suite à mon message du ${v.datePremierMail}. Je sais que votre agenda est chargé et ne voudrais surtout pas être insistant${v.genre==='F'?'e':''}. Je reste sincèrement convaincu que mon profil pourrait intéresser votre équipe chez ${v.banque}, que ce soit maintenant ou plus tard.\n\nJe reste disponible à votre convenance.\n\n${s}`
-      : `${bj}\n\n${sl}\n\nJe me permets de vous relancer suite à mon mail du ${v.datePremierMail} concernant ma candidature à un ${v.contrat} chez ${v.banque}. Je sais que vous êtes très sollicité${v.genre==='F'?'e':''} et ne voudrais pas que mon message soit passé inaperçu.\n\nJe reste disponible à votre convenance.\n\n${s}`;
+      : `${bj}\n\n${sl}\n\nJe me permets de vous relancer suite à mon mail du ${v.datePremierMail} concernant ma candidature à un ${trContrat(v.contrat, lang)} chez ${v.banque}. Je sais que vous êtes très sollicité${v.genre==='F'?'e':''} et ne voudrais pas que mon message soit passé inaperçu.\n\nJe reste disponible à votre convenance.\n\n${s}`;
   }
   return { subject, text };
 }
@@ -1194,8 +1249,8 @@ function buildMailRemerciement(lang, contract, tv, genre, vars) {
   const e  = genre === 'F' ? 'e' : '';
 
   const subject = enLang
-    ? `Thank you for our discussion — ${v.prenom} — David Maquoi`
-    : `Merci pour notre échange — ${v.prenom} — David Maquoi`;
+    ? `Thank you for our discussion, ${v.prenom}, David Maquoi`
+    : `Merci pour notre échange, ${v.prenom}, David Maquoi`;
 
   let text;
   if (enLang) {
@@ -1227,34 +1282,34 @@ function buildLinkedin(tpl, tv, lang, metier, actif, vars) {
   const actifStr = actif ? (enLang ? ` in ${actif}` : ` ${actif}`) : '';
 
   const introLI = enLang
-    ? `I am currently on an apprenticeship as Non Linear Rates, Credit & Hybrid Structurer at CA-CIB and also pursuing a double degree in Quantitative Finance at Paris II Assas`
-    : `Actuellement en alternance en tant que Non Linear Rates, Credit & Hybrid Structuring chez CA-CIB et en double diplôme en Finance Quantitative à Paris II Assas`;
+    ? `Currently on an apprenticeship in Non Linear Rates, Credit & Hybrid Structuring at CA-CIB, pursuing a double degree in Quantitative Finance at Paris II Assas`
+    : `Actuellement en Alternance en tant que Non Linear Rates, Credit & Hybrid Structuring chez CA-CIB, dans le cadre de mon double diplôme en Finance Quantitative à Paris II Assas`;
 
   switch(tpl) {
     case 'networking':
       return enLang
-        ? `${bj}\n\n${sl}\n\n${v.contact} suggested I reach out after our conversation about your desk at ${v.banque}.\n\n${introLI}. I am looking for a ${v.contrat} and your team genuinely stands out to me. Would you be available for a brief call?\n\n${s}`
+        ? `${bj}\n\n${sl}\n\n${v.contact} suggested I reach out after our conversation about your desk at ${v.banque}.\n\n${introLI}. I am looking for a ${trContrat(v.contrat, lang)} and your team genuinely stands out to me. Would you be available for a brief call?\n\n${s}`
         : tv
-          ? `${bj}\n\n${sl}\n\n${v.contact} m'a encouragé à te contacter après notre échange sur ton desk chez ${v.banque}.\n\n${introLI}. Je suis à la recherche d'un ${v.contrat} et ton équipe m'intéresse particulièrement. Serais-tu disponible pour un bref call ?\n\n${s}`
-          : `${bj}\n\n${sl}\n\n${v.contact} m'a encouragé à vous contacter après notre échange sur votre desk chez ${v.banque}.\n\n${introLI}. Je suis à la recherche d'un ${v.contrat} et votre équipe m'intéresse particulièrement. Seriez-vous disponible pour un bref call ?\n\n${s}`;
+          ? `${bj}\n\n${sl}\n\n${v.contact} m'a encouragé à te contacter après notre échange sur ton desk chez ${v.banque}.\n\n${introLI}. Je suis à la recherche d'un ${trContrat(v.contrat, lang)} et ton équipe m'intéresse particulièrement. Serais-tu disponible pour un bref call ?\n\n${s}`
+          : `${bj}\n\n${sl}\n\n${v.contact} m'a encouragé à vous contacter après notre échange sur votre desk chez ${v.banque}.\n\n${introLI}. Je suis à la recherche d'un ${trContrat(v.contrat, lang)} et votre équipe m'intéresse particulièrement. Seriez-vous disponible pour un bref call ?\n\n${s}`;
     case 'expertise':
       return enLang
-        ? `${bj}\n\n${sl}\n\nYour role as ${v.titre} at ${v.banque} is exactly what prompted me to reach out.\n\n${introLI}. ${ap}\n\nI am looking for a ${v.contrat} and your team genuinely stands out to me. Would you have 15 minutes to discuss?\n\n${s}`
+        ? `${bj}\n\n${sl}\n\nYour role as ${v.titre} at ${v.banque} is exactly what prompted me to reach out.\n\n${introLI}. ${ap}\n\nI am looking for a ${trContrat(v.contrat, lang)} and your team genuinely stands out to me. Would you have 10 minutes to discuss?\n\n${s}`
         : tv
-          ? `${bj}\n\n${sl}\n\nTon rôle de ${v.titre} chez ${v.banque} est exactement ce qui m'a amené à te solliciter.\n\n${introLI}. ${ap}\n\nJe suis à la recherche d'un ${v.contrat} et ton équipe m'intéresse particulièrement. Aurais-tu 15 minutes pour en parler ?\n\n${s}`
-          : `${bj}\n\n${sl}\n\nVotre rôle de ${v.titre} chez ${v.banque} est exactement ce qui m'a amené à vous solliciter.\n\n${introLI}. ${ap}\n\nJe suis à la recherche d'un ${v.contrat} et votre équipe m'intéresse particulièrement. Auriez-vous 15 minutes pour en parler ?\n\n${s}`;
+          ? `${bj}\n\n${sl}\n\nTon rôle de ${v.titre} chez ${v.banque} est exactement ce qui m'a amené à te solliciter.\n\n${introLI}. ${ap}\n\nJe suis à la recherche d'un ${trContrat(v.contrat, lang)} et ton équipe m'intéresse particulièrement. Aurais-tu 10 minutes pour en parler ?\n\n${s}`
+          : `${bj}\n\n${sl}\n\nVotre rôle de ${v.titre} chez ${v.banque} est exactement ce qui m'a amené à vous solliciter.\n\n${introLI}. ${ap}\n\nJe suis à la recherche d'un ${trContrat(v.contrat, lang)} et votre équipe m'intéresse particulièrement. Auriez-vous 10 minutes pour en parler ?\n\n${s}`;
     case 'accroche':
       return enLang
-        ? `${bj}\n\n${sl}\n\nIn the current rates and vol environment, the role of ${v.titre} at ${v.banque} feels particularly strategic.\n\n${introLI}. I am looking for a ${v.contrat} and your team genuinely stands out to me. Your take on current markets${actifStr} would be very interesting to hear.\n\n${s}`
+        ? `${bj}\n\n${sl}\n\nIn the current rates and vol environment, the role of ${v.titre} at ${v.banque} feels particularly strategic.\n\n${introLI}. I am looking for a ${trContrat(v.contrat, lang)} and your team genuinely stands out to me. Your take on current markets${actifStr} would be very interesting to hear.\n\n${s}`
         : tv
-          ? `${bj}\n\n${sl}\n\nDans le contexte actuel sur les Taux et la Volatilité, le rôle de ${v.titre} chez ${v.banque} me semble particulièrement stratégique.\n\n${introLI}. Je suis à la recherche d'un ${v.contrat} et ton équipe m'intéresse particulièrement. Ton regard sur le contexte actuel${actifStr ? ' en ' + actif : ''} m'intéresserait beaucoup.\n\n${s}`
-          : `${bj}\n\n${sl}\n\nDans le contexte actuel sur les Taux et la Volatilité, le rôle de ${v.titre} chez ${v.banque} me semble particulièrement stratégique.\n\n${introLI}. Je suis à la recherche d'un ${v.contrat} et votre équipe m'intéresse particulièrement. Votre regard sur le contexte actuel${actifStr ? ' en ' + actif : ''} m'intéresserait beaucoup.\n\n${s}`;
+          ? `${bj}\n\n${sl}\n\nDans le contexte actuel sur les Taux et la Volatilité, le rôle de ${v.titre} chez ${v.banque} me semble particulièrement stratégique.\n\n${introLI}. Je suis à la recherche d'un ${trContrat(v.contrat, lang)} et ton équipe m'intéresse particulièrement. Ton regard sur le contexte actuel${actifStr ? ' en ' + actif : ''} m'intéresserait beaucoup.\n\n${s}`
+          : `${bj}\n\n${sl}\n\nDans le contexte actuel sur les Taux et la Volatilité, le rôle de ${v.titre} chez ${v.banque} me semble particulièrement stratégique.\n\n${introLI}. Je suis à la recherche d'un ${trContrat(v.contrat, lang)} et votre équipe m'intéresse particulièrement. Votre regard sur le contexte actuel${actifStr ? ' en ' + actif : ''} m'intéresserait beaucoup.\n\n${s}`;
     default: // direct
       return enLang
-        ? `${bj}\n\n${sl}\n\n${introLI}. Your profile as ${v.titre} at ${v.banque} really caught my attention.\n\nI am looking for a ${v.contrat} and your team genuinely stands out to me. Would you have a few minutes to connect?\n\n${s}`
+        ? `${bj}\n\n${sl}\n\n${introLI}. Your profile as ${v.titre} at ${v.banque} really caught my attention.\n\nI am looking for a ${trContrat(v.contrat, lang)} and your team genuinely stands out to me. Would you have a few minutes to connect?\n\n${s}`
         : tv
-          ? `${bj}\n\n${sl}\n\n${introLI}, je me permets de te contacter car ton profil de ${v.titre} chez ${v.banque} m'a interpellé.\n\nJe suis à la recherche d'un ${v.contrat} et ton équipe m'intéresse particulièrement. Aurais-tu quelques minutes pour échanger ?\n\n${s}`
-          : `${bj}\n\n${sl}\n\n${introLI}, je me permets de vous contacter car votre profil de ${v.titre} chez ${v.banque} m'a interpellé.\n\nJe suis à la recherche d'un ${v.contrat} et votre équipe m'intéresse particulièrement. Auriez-vous quelques minutes pour échanger ?\n\n${s}`;
+          ? `${bj}\n\n${sl}\n\n${introLI}, je me permets de te contacter car ton profil de ${v.titre} chez ${v.banque} m'a interpellé.\n\nJe suis à la recherche d'un ${trContrat(v.contrat, lang)} et ton équipe m'intéresse particulièrement. Aurais-tu quelques minutes pour échanger ?\n\n${s}`
+          : `${bj}\n\n${sl}\n\n${introLI}, je me permets de vous contacter car votre profil de ${v.titre} chez ${v.banque} m'a interpellé.\n\nJe suis à la recherche d'un ${trContrat(v.contrat, lang)} et votre équipe m'intéresse particulièrement. Auriez-vous quelques minutes pour échanger ?\n\n${s}`;
   }
 }
 
@@ -1748,7 +1803,7 @@ function renderBankList() {
         <button onclick="editBank('${b.name.replace(/'/g, "\\'")}')" style="background:none;border:1px solid var(--border2);border-radius:6px;padding:5px 9px;color:var(--sub);font-size:0.72rem;cursor:pointer;">✏️</button>
         ${isCustom ? `<button onclick="deleteBank('${b.name.replace(/'/g, "\\'")}', event)" style="background:none;border:1px solid var(--border2);border-radius:6px;padding:5px 9px;color:var(--red);font-size:0.72rem;cursor:pointer;">✕</button>` : ''}
       </div>
-    </div>`;
+    </div></div>`;
   }).join('');
 }
 
@@ -2041,14 +2096,7 @@ async function addCandidatureFromGenerator() {
   await saveCandidatureFirestore(cand);
 
   // Visual feedback
-  const btn = document.getElementById('addStatsBtn');
-  if (btn) {
-    const orig = btn.innerHTML;
-    btn.innerHTML = '✓ Ajouté aux candidatures !';
-    btn.style.color = 'var(--green)';
-    btn.style.borderColor = 'var(--green)';
-    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; btn.style.borderColor = ''; }, 2500);
-  }
+  showToast('✓ Ajoutée aux candidatures !');
 }
 
 // ── MODAL ─────────────────────────────────────────────────────────
@@ -2134,6 +2182,7 @@ async function saveCandModal() {
   await saveCandidatureFirestore(cand);
   closeCandModal();
   renderSuivi();
+  showToast('✓ Candidature sauvegardée !');
 }
 
 async function deleteCand(id, e) {
@@ -2193,7 +2242,11 @@ function renderSuivi() {
     const sc = STATUT_COLORS[c.statut] || { color: 'var(--sub)', bg: 'var(--s3)' };
     const dateStr = c.date ? fmtDate(c.date) : '';
     const _overdue = isRelanceOverdue(c);
-    return `<div style="background:var(--s2);border:1px solid ${_overdue ? 'var(--red)' : 'var(--border)'};border-radius:var(--r-sm);padding:13px 14px;margin-bottom:8px;cursor:pointer;" onclick="openCandModal('${c.id}')">
+    return `<div class="swipe-container" data-id="${c.id}" style="position:relative;margin-bottom:8px;overflow:hidden;border-radius:var(--r-sm);">
+      <div class="swipe-bg" style="position:absolute;inset:0;background:var(--gold);display:flex;align-items:center;justify-content:flex-end;padding-right:20px;border-radius:var(--r-sm);">
+        <span style="font-size:1.2rem;">📦</span>
+      </div>
+      <div class="swipe-card" style="background:var(--s2);border:1px solid ${_overdue ? 'var(--red)' : 'var(--border)'};border-radius:var(--r-sm);padding:13px 14px;cursor:pointer;position:relative;touch-action:pan-y;user-select:none;transition:transform 0.15s ease;" onclick="openCandModal('${c.id}')">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
         <div style="flex:1;min-width:0;">
           <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px;">
@@ -2215,7 +2268,7 @@ function renderSuivi() {
           <button onclick="deleteCand('${c.id}', event)" style="background:none;border:none;color:var(--muted);font-size:0.8rem;cursor:pointer;padding:2px 4px;" title="Supprimer">✕</button>
         </div>
       </div>
-    </div>`;
+    </div></div>`;
   }).join('');
 }
 
@@ -2249,7 +2302,7 @@ function updateStats() {
         <div style="height:5px;background:var(--s3);border-radius:3px;">
           <div style="height:100%;width:${pct}%;background:${sc.color};border-radius:3px;transition:width .4s;"></div>
         </div>
-      </div>`;
+      </div></div>`;
     }).join('');
   }
 
@@ -2360,7 +2413,7 @@ function updateRappels() {
     return `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,94,122,0.06);border-radius:6px;padding:7px 10px;margin-bottom:4px;">
       <div><span style="font-size:0.82rem;font-weight:600;color:var(--text);">${c.banque}</span><span style="font-size:0.72rem;color:var(--muted);margin-left:6px;">${c.poste||''}</span></div>
       <span style="font-size:0.72rem;color:var(--red);font-weight:600;white-space:nowrap;">J+${days}</span>
-    </div>`;
+    </div></div>`;
   }).join('');
 }
 
@@ -2475,7 +2528,7 @@ function detectBankFromLinkedIn() {
       msgs.push('Banque : sélectionne-la manuellement dans la liste');
       if (msgEl) { msgEl.style.color='var(--accent)'; msgEl.textContent=msgs.join(' · '); }
     } else if (companyMatch) {
-      if (msgEl) { msgEl.style.color='var(--muted)'; msgEl.textContent='Banque non reconnue — ajoute-la via "+ Ajouter".'; }
+      if (msgEl) { msgEl.style.color='var(--muted)'; msgEl.textContent='Banque non reconnue, ajoute-la via "+ Ajouter".'; }
     } else {
       if (msgEl) { msgEl.style.color='var(--muted)'; msgEl.textContent='URL non reconnue. Format attendu : linkedin.com/in/prenom-nom ou linkedin.com/company/banque'; }
     }
@@ -2487,16 +2540,69 @@ function cap(s) { return s ? s.charAt(0).toUpperCase()+s.slice(1) : ''; }
 
 // ── CLEAR FORMS ───────────────────────────────────────────────────
 function clearGenForm() {
+  // ── Champs texte ─────────────────────────────────────────────
   ['firstName','lastName','company','classeActif','jobRole',
    'contactCommun','datePremierMail','sujetEchange'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
-  // Reset dropdowns
+
+  // ── Dropdowns ────────────────────────────────────────────────
   const dd = document.getElementById('company-dropdown');
   if (dd) dd.style.display = 'none';
   window._selectedCompanyBank = null;
-  // Hide output, addStats, mailtoBtn
+
+  // ── Pills actif ───────────────────────────────────────────────
+  document.querySelectorAll('#actifPills .pill').forEach(p => p.classList.remove('active'));
+
+  // ── Pills contrat → défaut Stage ──────────────────────────────
+  document.querySelectorAll('#contractGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === 'Stage');
+  });
+  state.contract = 'Stage';
+
+  // ── Pills canal → défaut Mail ─────────────────────────────────
+  document.querySelectorAll('#canalGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === 'Mail');
+  });
+  state.canal = 'Mail';
+
+  // ── Pills langue → défaut FR ──────────────────────────────────
+  document.querySelectorAll('#langGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === 'fr');
+  });
+  state.lang = 'fr';
+
+  // ── Pills type message → défaut candidature ───────────────────
+  document.querySelectorAll('#msgTypeGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === 'candidature');
+  });
+  state.msgType = 'candidature';
+
+  // ── Pills métier → défaut Sales ───────────────────────────────
+  document.querySelectorAll('#metierGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === 'Sales');
+  });
+  state.metier = 'Sales';
+
+  // ── Pills genre → défaut H ────────────────────────────────────
+  document.querySelectorAll('#genreGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === 'H');
+  });
+  state.genre = 'H';
+
+  // ── Pills approche → défaut direct ───────────────────────────
+  document.querySelectorAll('#approcheGroup .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.val === 'direct');
+  });
+  state.tpl = 'direct';
+
+  // ── Sections contextuelles ────────────────────────────────────
+  updateMailExtras();
+  const appSec = document.getElementById('approcheSection');
+  if (appSec) appSec.style.display = 'block';
+
+  // ── Output ────────────────────────────────────────────────────
   document.getElementById('outputCard')?.classList.remove('visible');
   const mb = document.getElementById('mailtoBtn');
   if (mb) mb.style.display = 'none';
@@ -2879,12 +2985,12 @@ function buildLinkedinRelance(tv, lang, vars) {
 
   if (lang === 'en') {
     return tv
-      ? `${bj}\n\n${sl}\n\nI am following up on my previous message about a ${v.contrat} opportunity at ${v.banque}.\n\nI remain very motivated and would love to connect if you have a few minutes.\n\n${s}`
-      : `${bj}\n\n${sl}\n\nI am following up on my previous message about a ${v.contrat} opportunity at ${v.banque}.\n\nI remain very motivated and would love to connect at your convenience.\n\n${s}`;
+      ? `${bj}\n\n${sl}\n\nI am following up on my previous message about a ${trContrat(v.contrat, lang)} opportunity at ${v.banque}.\n\nI remain very motivated and would love to connect if you have a few minutes.\n\n${s}`
+      : `${bj}\n\n${sl}\n\nI am following up on my previous message about a ${trContrat(v.contrat, lang)} opportunity at ${v.banque}.\n\nI remain very motivated and would love to connect at your convenience.\n\n${s}`;
   }
   return tv
-    ? `${bj}\n\n${sl}\n\nJe me permets de revenir vers toi suite à mon message précédent concernant ma recherche d'un ${v.contrat} chez ${v.banque}.\n\nJe reste très motivé et serais ravi d'échanger avec toi si tu as quelques minutes.\n\n${s}`
-    : `${bj}\n\n${sl}\n\nJe me permets de revenir vers vous suite à mon message précédent concernant ma recherche d'un ${v.contrat} chez ${v.banque}.\n\nJe reste très motivé et serais ravi d'échanger avec vous si vous avez quelques minutes.\n\n${s}`;
+    ? `${bj}\n\n${sl}\n\nJe me permets de revenir vers toi suite à mon message précédent concernant ma recherche d'un ${trContrat(v.contrat, lang)} chez ${v.banque}.\n\nJe reste très motivé et serais ravi d'échanger avec toi si tu as quelques minutes.\n\n${s}`
+    : `${bj}\n\n${sl}\n\nJe me permets de revenir vers vous suite à mon message précédent concernant ma recherche d'un ${trContrat(v.contrat, lang)} chez ${v.banque}.\n\nJe reste très motivé et serais ravi d'échanger avec vous si vous avez quelques minutes.\n\n${s}`;
 }
 
 // ── LINKEDIN REMERCIEMENT ─────────────────────────────────────────
@@ -2955,10 +3061,10 @@ function renderKanban() {
   board.innerHTML = KANBAN_COLS.map(col => {
     const cards = active.filter(c => c.statut === col.id);
     return `
-    <div class="kanban-col" data-col="${col.id}"
+    <div class="kanban-col" data-col="${col.id}" data-col-id="${col.id}"
       ondragover="event.preventDefault()"
       ondrop="dropOnCol('${col.id}', event)"
-      ontouchend="touchDropOnCol('${col.id}', event)"
+      data-col-id="${col.id}"
       style="flex:0 0 160px;min-width:160px;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
         <div style="width:8px;height:8px;border-radius:50%;background:${col.color};flex-shrink:0;"></div>
@@ -2981,7 +3087,7 @@ function renderKanban() {
             ${isRelanceOverdue(c) ? `<div style="font-size:0.62rem;color:var(--red);margin-top:2px;">⏰ À relancer</div>` : ''}
           </div>`).join('')}
       </div>
-    </div>`;
+    </div></div>`;
   }).join('');
 }
 
@@ -2998,24 +3104,23 @@ async function dropOnCol(statut, event) {
 }
 
 // ── TOUCH DRAG (mobile) ───────────────────────────────────────────
-let touchDragId   = null;
-let touchClone    = null;
-let touchOffX     = 0;
-let touchOffY     = 0;
+let touchDragId = null;
+let touchClone  = null;
+let touchOffX   = 0;
+let touchOffY   = 0;
 
 function touchStart(id, event) {
   touchDragId = id;
   const card  = event.currentTarget;
   const rect  = card.getBoundingClientRect();
   const touch = event.touches[0];
+  touchOffX   = touch.clientX - rect.left;
+  touchOffY   = touch.clientY - rect.top;
 
-  // Create visual clone
+  // Clone visuel
   touchClone = card.cloneNode(true);
-  touchClone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.85;z-index:9999;pointer-events:none;border-radius:var(--r-sm);background:var(--s2);border:1px solid var(--accent);transition:none;`;
+  touchClone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.85;z-index:9999;pointer-events:none;border-radius:8px;background:var(--s2);border:2px solid var(--accent);box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:none;`;
   document.body.appendChild(touchClone);
-
-  touchOffX = touch.clientX - rect.left;
-  touchOffY = touch.clientY - rect.top;
 }
 
 function touchMove(event) {
@@ -3024,14 +3129,34 @@ function touchMove(event) {
   const touch = event.touches[0];
   touchClone.style.left = (touch.clientX - touchOffX) + 'px';
   touchClone.style.top  = (touch.clientY - touchOffY) + 'px';
+
+  // Highlight column under finger
+  document.querySelectorAll('.kanban-col').forEach(col => col.style.background = '');
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  const col = el?.closest('[data-col-id]');
+  if (col) col.style.background = 'rgba(79,142,255,0.08)';
 }
 
-function touchDropOnCol(statut, event) {
-  if (!touchDragId) return;
-  if (touchClone) { document.body.removeChild(touchClone); touchClone = null; }
-  updateCandStatut(touchDragId, statut);
+// Global touchend handler for kanban drop
+document.addEventListener('touchend', function(event) {
+  if (!touchDragId || !touchClone) return;
+  const touch = event.changedTouches[0];
+
+  // Remove clone
+  document.body.removeChild(touchClone);
+  touchClone = null;
+
+  // Reset column highlights
+  document.querySelectorAll('.kanban-col').forEach(col => col.style.background = '');
+
+  // Find column under finger
+  const el  = document.elementFromPoint(touch.clientX, touch.clientY);
+  const col = el?.closest('[data-col-id]');
+  if (col) {
+    updateCandStatut(touchDragId, col.dataset.colId);
+  }
   touchDragId = null;
-}
+}, { passive: false });
 
 async function updateCandStatut(id, statut) {
   const idx = candidatures.findIndex(c => c.id === id);
@@ -3047,6 +3172,200 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ACCROCHE MARCHÉ DYNAMIQUE
+// ═══════════════════════════════════════════════════════════════
+
+function mktAccroche(actif, tv, v) {
+  const a = (actif || '').toLowerCase();
+  let phrase = '';
+  if (a.includes('rate') || a.includes('taux')) {
+    phrase = "Le contexte actuel sur les Taux, remontée de la volatilité, repricing des courbes, flux croissants sur les dérivés de taux, m'a amené à réfléchir sérieusement aux équipes que je voudrais rejoindre.";
+  } else if (a.includes('crédit') || a.includes('credit')) {
+    phrase = "Le contexte de marché actuel, resserrement des spreads de crédit, regain d'activité sur les CDO et CLO, flux croissants sur les Produits Structurés de crédit, m'a amené à réfléchir aux équipes que je voudrais rejoindre.";
+  } else if (a.includes('cross') || a.includes('multi')) {
+    phrase = "Le contexte de marché actuel, volatilité cross-asset, interactions croissantes entre les marchés de Taux, de Crédit et d'Actions, m'a amené à réfléchir sérieusement aux équipes que je voudrais rejoindre.";
+  } else if (a.includes('equity') || a.includes('action')) {
+    phrase = "Le contexte de marché actuel, volatilité des marchés actions, regain d'activité sur les Produits Structurés et les dérivés actions, m'a amené à réfléchir sérieusement aux équipes que je voudrais rejoindre.";
+  } else if (a.includes('fx') || a.includes('change') || a.includes('forex')) {
+    phrase = "Le contexte de marché actuel, volatilité accrue sur les marchés de change, flux croissants sur les dérivés FX et les Produits Structurés, m'a amené à réfléchir sérieusement aux équipes que je voudrais rejoindre.";
+  } else {
+    phrase = "Le contexte de marché actuel, Volatilité des Taux, repricing du Risque Crédit, flux croissants sur les Produits Structurés, m'a amené à réfléchir sérieusement aux équipes que je voudrais rejoindre.";
+  }
+  return `${phrase} Cette réflexion m'a conduit à ${ton(tv)} profil chez ${v.banque}.`;
+}
+
+function mktAccrocheJunior(actif, tv, v) {
+  const a = (actif || '').toLowerCase();
+  let phrase = '';
+  if (a.includes('rate') || a.includes('taux')) {
+    phrase = `Le contexte actuel sur les Taux, particulièrement actif sur la volatilité des courbes, rend le rôle de ${v.titre} chez ${v.banque} plus stratégique que jamais.`;
+  } else if (a.includes('crédit') || a.includes('credit')) {
+    phrase = `Le contexte actuel sur le Crédit, resserrement des spreads, regain d'activité sur les Produits Structurés, rend le rôle de ${v.titre} chez ${v.banque} particulièrement attractif.`;
+  } else if (a.includes('cross') || a.includes('multi')) {
+    phrase = `Le contexte de marché actuel, particulièrement actif sur l'ensemble des classes d'actifs, rend le rôle de ${v.titre} chez ${v.banque} plus stratégique que jamais.`;
+  } else if (a.includes('equity') || a.includes('action')) {
+    phrase = `Le contexte actuel sur les marchés actions, avec une volatilité accrue et une forte activité sur les Produits Structurés, rend le rôle de ${v.titre} chez ${v.banque} particulièrement attractif.`;
+  } else if (a.includes('fx') || a.includes('change')) {
+    phrase = `Le contexte actuel sur les marchés de change, avec une volatilité accrue sur les paires majeures, rend le rôle de ${v.titre} chez ${v.banque} plus stratégique que jamais.`;
+  } else {
+    phrase = `Le contexte de marché actuel, particulièrement actif sur les Taux et la Volatilité, rend le rôle de ${v.titre} chez ${v.banque} plus stratégique que jamais.`;
+  }
+  return `${phrase} C'est ce qui m'a motivé à ${te(tv)} contacter.`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PILLS CLASSE D'ACTIF
+// ═══════════════════════════════════════════════════════════════
+
+function selectActif(el) {
+  const isActive = el.classList.contains('active');
+  document.querySelectorAll('#actifPills .pill').forEach(p => p.classList.remove('active'));
+  if (!isActive) {
+    el.classList.add('active');
+    // Use EN version if language is EN and data-actif-en is set
+    const isEN = state.lang === 'en';
+    const val = (isEN && el.dataset.actifEn) ? el.dataset.actifEn : el.dataset.actif;
+    document.getElementById('classeActif').value = val;
+  } else {
+    document.getElementById('classeActif').value = '';
+  }
+}
+
+function syncActifPills() {
+  const val = document.getElementById('classeActif').value.trim();
+  document.querySelectorAll('#actifPills .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.actif === val);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TOAST CONFIRMATION
+// ═══════════════════════════════════════════════════════════════
+
+function showToast(msg, color) {
+  let toast = document.getElementById('toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--s2);border:1px solid var(--border2);border-radius:20px;padding:10px 20px;font-size:0.82rem;font-weight:600;color:var(--text);z-index:9999;transition:opacity .3s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.4);';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.borderColor = color || 'var(--green)';
+  toast.style.color = color || 'var(--green)';
+  toast.style.opacity = '1';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 2200);
+}
+
+// ── THEME TOGGLE ──────────────────────────────────────────────────
+function toggleTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  if (isLight) {
+    document.documentElement.removeAttribute('data-theme');
+    document.getElementById('themeToggle').textContent = '☀️';
+    localStorage.setItem('finapply_theme', 'dark');
+    const _mt = document.getElementById('meta-theme-color');
+    if (_mt) _mt.setAttribute('content', '#07080d');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.getElementById('themeToggle').textContent = '🌙';
+    localStorage.setItem('finapply_theme', 'light');
+    const _mt = document.getElementById('meta-theme-color');
+    if (_mt) _mt.setAttribute('content', '#f4f5f7');
+  }
+}
+
+// Load saved theme
+(function() {
+  const saved = localStorage.getItem('finapply_theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    const btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = '🌙';
+    const _mt = document.getElementById('meta-theme-color');
+    if (_mt) _mt.setAttribute('content', '#f4f5f7');
+  }
+})();
+
+// ═══════════════════════════════════════════════════════════════
+// SWIPE TO ARCHIVE
+// ═══════════════════════════════════════════════════════════════
+
+let swipeStartX  = 0;
+let swipeStartY  = 0;
+let swipeEl      = null;
+let swipeCard    = null;
+let swipeActive  = false;
+const SWIPE_THRESHOLD = 80; // px to trigger archive
+
+document.addEventListener('touchstart', function(e) {
+  const container = e.target.closest('.swipe-container');
+  if (!container) return;
+  // Don't interfere with kanban drag
+  if (e.target.closest('.kanban-card')) return;
+
+  swipeEl     = container;
+  swipeCard   = container.querySelector('.swipe-card');
+  swipeStartX = e.touches[0].clientX;
+  swipeStartY = e.touches[0].clientY;
+  swipeActive = false;
+  if (swipeCard) swipeCard.style.transition = 'none';
+}, { passive: true });
+
+document.addEventListener('touchmove', function(e) {
+  if (!swipeEl || !swipeCard) return;
+  const dx = e.touches[0].clientX - swipeStartX;
+  const dy = e.touches[0].clientY - swipeStartY;
+
+  // Only horizontal swipe (ignore vertical scrolls)
+  if (!swipeActive && Math.abs(dy) > Math.abs(dx)) {
+    swipeEl = null; swipeCard = null; return;
+  }
+  swipeActive = true;
+
+  // Only allow left swipe (negative dx)
+  const clampedDx = Math.min(0, dx);
+  swipeCard.style.transform = `translateX(${clampedDx}px)`;
+
+  // Show archive bg when swiping enough
+  const bg = swipeEl.querySelector('.swipe-bg');
+  if (bg) bg.style.opacity = Math.min(1, Math.abs(clampedDx) / SWIPE_THRESHOLD);
+}, { passive: true });
+
+document.addEventListener('touchend', function(e) {
+  if (!swipeEl || !swipeCard) return;
+  const dx = e.changedTouches[0].clientX - swipeStartX;
+
+  if (dx < -SWIPE_THRESHOLD) {
+    // Archive — animate out then archive
+    swipeCard.style.transition = 'transform 0.25s ease';
+    swipeCard.style.transform  = `translateX(-100%)`;
+    const id = swipeEl.dataset.id;
+    setTimeout(() => {
+      archiveCandById(id);
+    }, 220);
+  } else {
+    // Snap back
+    swipeCard.style.transition = 'transform 0.2s ease';
+    swipeCard.style.transform  = 'translateX(0)';
+    const bg = swipeEl.querySelector('.swipe-bg');
+    if (bg) bg.style.opacity = '0';
+  }
+  swipeEl = null; swipeCard = null;
+}, { passive: true });
+
+async function archiveCandById(id) {
+  const idx = candidatures.findIndex(x => x.id === id);
+  if (idx < 0) return;
+  candidatures[idx].archived = !candidatures[idx].archived;
+  await saveCandidatureFirestore(candidatures[idx]);
+  showToast(candidatures[idx].archived ? '📦 Archivée' : '📤 Désarchivée');
+  updateNavBadge();
+  renderSuivi();
 }
 </script>
 </body>
