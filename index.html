@@ -3295,13 +3295,13 @@ function toggleTheme() {
 // SWIPE TO ARCHIVE
 // ═══════════════════════════════════════════════════════════════
 
-let swipeStartX   = 0;
-let swipeStartY   = 0;
-let swipeEl       = null;
-let swipeCard     = null;
-let swipeActive   = false;
-let swipeDecided  = false;
-const SWIPE_THRESHOLD = 75;
+let swipeStartX  = 0;
+let swipeStartY  = 0;
+let swipeStartT  = 0;
+let swipeEl      = null;
+let swipeCard    = null;
+let swipeActive  = false;
+let swipeDecided = false;
 
 document.addEventListener('touchstart', function(e) {
   const container = e.target.closest('.swipe-container');
@@ -3311,9 +3311,13 @@ document.addEventListener('touchstart', function(e) {
   swipeCard    = container.querySelector('.swipe-card');
   swipeStartX  = e.touches[0].clientX;
   swipeStartY  = e.touches[0].clientY;
+  swipeStartT  = Date.now();
   swipeActive  = false;
   swipeDecided = false;
-  if (swipeCard) swipeCard.style.transition = 'none';
+  if (swipeCard) {
+    swipeCard.style.transition = 'none';
+    swipeCard.style.willChange = 'transform';
+  }
 }, { passive: true });
 
 document.addEventListener('touchmove', function(e) {
@@ -3322,37 +3326,42 @@ document.addEventListener('touchmove', function(e) {
   const dy = e.touches[0].clientY - swipeStartY;
 
   if (!swipeDecided) {
-    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return; // wait for clear direction
+    if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
     swipeDecided = true;
-    if (Math.abs(dy) > Math.abs(dx)) {
-      // Vertical scroll — cancel swipe
-      swipeEl = null; swipeCard = null; return;
-    }
+    if (Math.abs(dy) > Math.abs(dx)) { swipeEl = null; swipeCard = null; return; }
     swipeActive = true;
   }
   if (!swipeActive) return;
+  e.preventDefault();
 
   const clampedDx = Math.min(0, dx);
   swipeCard.style.transform = `translateX(${clampedDx}px)`;
+  const pct = Math.min(1, Math.abs(clampedDx) / 60);
   const bg = swipeEl.querySelector('.swipe-bg');
-  if (bg) bg.style.opacity = String(Math.min(1, Math.abs(clampedDx) / SWIPE_THRESHOLD));
+  if (bg) bg.style.opacity = String(pct);
 }, { passive: false });
 
 document.addEventListener('touchend', function(e) {
   if (!swipeEl || !swipeCard) return;
-  const dx = e.changedTouches[0].clientX - swipeStartX;
-  if (swipeActive && dx < -SWIPE_THRESHOLD) {
-    swipeCard.style.transition = 'transform 0.25s ease';
+  const dx       = e.changedTouches[0].clientX - swipeStartX;
+  const dt       = Date.now() - swipeStartT;
+  const velocity = Math.abs(dx) / dt; // px/ms
+
+  // Trigger if: moved 30px left OR fast swipe (velocity > 0.3px/ms with at least 10px)
+  const shouldArchive = swipeActive && dx < 0 && (dx < -30 || (velocity > 0.3 && dx < -10));
+
+  if (shouldArchive) {
+    // Snap to end, then archive
+    swipeCard.style.transition = 'transform 0.2s cubic-bezier(0.25,0.46,0.45,0.94)';
     swipeCard.style.transform  = 'translateX(-110%)';
     const id = swipeEl.dataset.id;
-    setTimeout(() => archiveCandById(id), 230);
+    setTimeout(() => archiveCandById(id), 200);
   } else {
-    if (swipeCard) {
-      swipeCard.style.transition = 'transform 0.2s ease';
-      swipeCard.style.transform  = 'translateX(0)';
-    }
-    const bg = swipeEl && swipeEl.querySelector('.swipe-bg');
-    if (bg) bg.style.opacity = '0';
+    // Snap back with spring feel
+    swipeCard.style.transition = 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)';
+    swipeCard.style.transform  = 'translateX(0)';
+    const bg = swipeEl.querySelector('.swipe-bg');
+    if (bg) { bg.style.transition = 'opacity 0.2s'; bg.style.opacity = '0'; }
   }
   swipeEl = null; swipeCard = null;
 }, { passive: true });
