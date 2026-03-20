@@ -3347,8 +3347,8 @@ document.addEventListener('touchend', function(e) {
   const dt       = Date.now() - swipeStartT;
   const velocity = Math.abs(dx) / dt; // px/ms
 
-  // Trigger if: moved 30px left OR fast swipe (velocity > 0.3px/ms with at least 10px)
-  const shouldArchive = swipeActive && dx < 0 && (dx < -30 || (velocity > 0.3 && dx < -10));
+  // Trigger on any left swipe > 5px
+  const shouldArchive = swipeActive && dx < -5;
 
   if (shouldArchive) {
     // Snap to end, then archive
